@@ -394,6 +394,7 @@ export type Database = {
           file_size: number | null;
           expiry_date: string | null;
           notes: string | null;
+          country: string | null;
           created_at: string;
         };
         Insert: {
@@ -406,13 +407,16 @@ export type Database = {
           file_size?: number | null;
           expiry_date?: string | null;
           notes?: string | null;
+          country?: string | null;
           created_at?: string;
         };
         Update: {
+          trip_id?: string | null;
           type?: Database['public']['Enums']['document_type'];
           name?: string;
           expiry_date?: string | null;
           notes?: string | null;
+          country?: string | null;
         };
         Relationships: [
           {
@@ -568,7 +572,18 @@ export type Database = {
       itinerary_category: 'transport' | 'accommodation' | 'activity' | 'food' | 'other';
       item_status: 'planned' | 'confirmed' | 'completed' | 'cancelled';
       mood_enum: 'amazing' | 'good' | 'okay' | 'bad' | 'terrible';
-      document_type: 'passport' | 'visa' | 'ticket' | 'hotel' | 'insurance' | 'other';
+      document_type:
+        | 'passport'
+        | 'visa'
+        | 'ticket'
+        | 'flight_ticket'
+        | 'train_ticket'
+        | 'bus_ticket'
+        | 'hotel'
+        | 'insurance'
+        | 'vaccination'
+        | 'driving_license'
+        | 'other';
       payment_method: 'cash' | 'card' | 'upi' | 'bank_transfer' | 'other';
     };
     CompositeTypes: Record<string, never>;
