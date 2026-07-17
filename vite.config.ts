@@ -110,7 +110,7 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    sourcemap: true,
+    sourcemap: false,
     rollupOptions: {
       plugins: [
         process.env.ANALYZE === 'true' &&
