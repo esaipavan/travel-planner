@@ -1,4 +1,401 @@
+import { useMemo, useState } from 'react';
+import { useParams, Navigate, Link } from 'react-router-dom';
+import { Plus, Search, BookOpen, SlidersHorizontal, X } from 'lucide-react';
+import { Button }   from '@/components/ui/button';
+import { Input }    from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Switch }   from '@/components/ui/switch';
+import { Label }    from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { PageHeader } from '@/components/shared/PageHeader';
+import {
+  useJournalEntries,
+  useCreateJournalEntry,
+  useUpdateJournalEntry,
+  useDeleteJournalEntry,
+  useToggleFavourite,
+} from '../hooks/useJournal';
+import { JournalStats }       from '../components/JournalStats';
+import { JournalEntryCard }   from '../components/JournalEntryCard';
+import { JournalEntryDialog } from '../components/JournalEntryDialog';
+import { JournalDetailDialog } from '../components/JournalDetailDialog';
+import type { JournalEntryRow, JournalFilters, JournalFormValues } from '../types';
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function JournalSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
+        ))}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-64 rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+const DEFAULT_FILTERS: JournalFilters = {
+  search:        '',
+  rating:        null,
+  favouriteOnly: false,
+  sortOrder:     'newest',
+};
+
 export default function JournalPage() {
-  return <div className="space-y-6"><PageHeader title="Travel Journal" /><div className="rounded-lg border border-dashed p-12 text-center text-muted-foreground">Journal UI — Phase 14</div></div>;
+  const { id: tripId } = useParams<{ id: string }>();
+  if (!tripId) return <Navigate to="/trips" replace />;
+
+  const { data: entries = [], isLoading, isError } = useJournalEntries(tripId);
+
+  const createMutation   = useCreateJournalEntry(tripId);
+  const updateMutation   = useUpdateJournalEntry(tripId);
+  const deleteMutation   = useDeleteJournalEntry(tripId);
+  const favouriteMutation = useToggleFavourite(tripId);
+
+  // UI state
+  const [dialogOpen,   setDialogOpen]   = useState(false);
+  const [editEntry,    setEditEntry]    = useState<JournalEntryRow | null>(null);
+  const [viewEntry,    setViewEntry]    = useState<JournalEntryRow | null>(null);
+  const [deleteEntry,  setDeleteEntry]  = useState<JournalEntryRow | null>(null);
+  const [filters,      setFilters]      = useState<JournalFilters>(DEFAULT_FILTERS);
+  const [showFilters,  setShowFilters]  = useState(false);
+
+  // ── Filtered list ───────────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    let result = [...entries];
+
+    if (filters.search) {
+      const q = filters.search.toLowerCase();
+      result = result.filter(
+        (e) =>
+          (e.title        ?? '').toLowerCase().includes(q) ||
+          (e.content      ?? '').toLowerCase().includes(q) ||
+          (e.location_name ?? '').toLowerCase().includes(q),
+      );
+    }
+    if (filters.rating != null) {
+      result = result.filter((e) => e.rating === filters.rating);
+    }
+    if (filters.favouriteOnly) {
+      result = result.filter((e) => e.is_favourite);
+    }
+
+    result.sort((a, b) => {
+      const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      return filters.sortOrder === 'newest' ? diff : -diff;
+    });
+
+    return result;
+  }, [entries, filters]);
+
+  const hasActiveFilter =
+    !!filters.search || filters.rating != null || filters.favouriteOnly;
+
+  // ── Handlers ────────────────────────────────────────────────────────────────
+  function openCreate() {
+    setEditEntry(null);
+    setDialogOpen(true);
+  }
+
+  function openEdit(entry: JournalEntryRow) {
+    setEditEntry(entry);
+    setDialogOpen(true);
+  }
+
+  async function handleSave(
+    values: JournalFormValues,
+    existingUrls: string[],
+    newFiles: File[],
+    removedUrls: string[],
+  ) {
+    if (editEntry) {
+      await updateMutation.mutateAsync({
+        id: editEntry.id,
+        values,
+        existingUrls,
+        newImages: newFiles,
+        removedUrls,
+      });
+    } else {
+      await createMutation.mutateAsync({ values, newImages: newFiles });
+    }
+    setDialogOpen(false);
+    setEditEntry(null);
+  }
+
+  function confirmDelete(entry: JournalEntryRow) {
+    setDeleteEntry(entry);
+  }
+
+  function executeDelete() {
+    if (!deleteEntry) return;
+    deleteMutation.mutate({
+      id:        deleteEntry.id,
+      imageUrls: deleteEntry.image_urls ?? [],
+    });
+    setDeleteEntry(null);
+  }
+
+  function handleToggleFavourite(entry: JournalEntryRow) {
+    favouriteMutation.mutate({ id: entry.id, isFavourite: !entry.is_favourite });
+  }
+
+  function clearFilters() {
+    setFilters(DEFAULT_FILTERS);
+  }
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+  if (isError) return <Navigate to="/trips" replace />;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Travel Journal"
+        description="Document your memories, moods, and favourite moments"
+      >
+        <Button onClick={openCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          New Entry
+        </Button>
+      </PageHeader>
+
+      {/* Stats */}
+      {isLoading ? (
+        <JournalSkeleton />
+      ) : (
+        <>
+          {entries.length > 0 && <JournalStats entries={entries} />}
+
+          {/* Search + filter bar */}
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <Input
+                  className="pl-9"
+                  placeholder="Search by title, content, or destination…"
+                  value={filters.search}
+                  onChange={(e) =>
+                    setFilters((f) => ({ ...f, search: e.target.value }))
+                  }
+                />
+              </div>
+              <Button
+                variant={showFilters ? 'secondary' : 'outline'}
+                size="icon"
+                onClick={() => setShowFilters((v) => !v)}
+                title="Toggle filters"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
+              {hasActiveFilter && (
+                <Button variant="ghost" size="icon" onClick={clearFilters} title="Clear filters">
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            {/* Expanded filter row */}
+            {showFilters && (
+              <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-card px-4 py-3">
+                {/* Rating filter */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground shrink-0">Rating</Label>
+                  <Select
+                    value={filters.rating?.toString() ?? 'any'}
+                    onValueChange={(v) =>
+                      setFilters((f) => ({
+                        ...f,
+                        rating: v === 'any' ? null : Number(v),
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-28">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any</SelectItem>
+                      {[5, 4, 3, 2, 1].map((r) => (
+                        <SelectItem key={r} value={r.toString()}>
+                          {'★'.repeat(r)}{'☆'.repeat(5 - r)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Sort */}
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs text-muted-foreground shrink-0">Sort</Label>
+                  <Select
+                    value={filters.sortOrder}
+                    onValueChange={(v) =>
+                      setFilters((f) => ({
+                        ...f,
+                        sortOrder: v as JournalFilters['sortOrder'],
+                      }))
+                    }
+                  >
+                    <SelectTrigger className="h-8 w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Newest first</SelectItem>
+                      <SelectItem value="oldest">Oldest first</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Favourites */}
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="fav-filter"
+                    checked={filters.favouriteOnly}
+                    onCheckedChange={(v) =>
+                      setFilters((f) => ({ ...f, favouriteOnly: v }))
+                    }
+                  />
+                  <Label htmlFor="fav-filter" className="text-xs cursor-pointer">
+                    Favourites only
+                  </Label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Entry count */}
+          {entries.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {filtered.length === entries.length
+                ? `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`
+                : `${filtered.length} of ${entries.length} entries`}
+            </p>
+          )}
+
+          {/* Empty state — no entries at all */}
+          {entries.length === 0 && (
+            <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed py-20 text-center">
+              <BookOpen className="h-10 w-10 text-muted-foreground opacity-40" />
+              <div className="space-y-1">
+                <p className="font-medium">No journal entries yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Start documenting your travel memories.
+                </p>
+              </div>
+              <Button onClick={openCreate}>
+                <Plus className="mr-2 h-4 w-4" />
+                Write first entry
+              </Button>
+            </div>
+          )}
+
+          {/* Empty state — filters too strict */}
+          {entries.length > 0 && filtered.length === 0 && (
+            <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed py-16 text-center">
+              <Search className="h-8 w-8 text-muted-foreground opacity-40" />
+              <p className="font-medium">No entries match your filters</p>
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                Clear filters
+              </Button>
+            </div>
+          )}
+
+          {/* Grid */}
+          {filtered.length > 0 && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filtered.map((entry) => (
+                <JournalEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onView={setViewEntry}
+                  onEdit={openEdit}
+                  onDelete={confirmDelete}
+                  onToggleFavourite={handleToggleFavourite}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Back link */}
+      <div className="pt-2">
+        <Link
+          to={`/trips/${tripId}`}
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          ← Back to trip
+        </Link>
+      </div>
+
+      {/* Create / Edit dialog */}
+      <JournalEntryDialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditEntry(null);
+        }}
+        entry={editEntry}
+        onSave={handleSave}
+        isPending={isSaving}
+      />
+
+      {/* Detail view */}
+      <JournalDetailDialog
+        entry={viewEntry}
+        onClose={() => setViewEntry(null)}
+      />
+
+      {/* Delete confirmation */}
+      <AlertDialog
+        open={!!deleteEntry}
+        onOpenChange={(open) => { if (!open) setDeleteEntry(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete journal entry?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{deleteEntry?.title ?? 'Untitled'}" will be permanently deleted along with
+              all its photos. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executeDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
 }

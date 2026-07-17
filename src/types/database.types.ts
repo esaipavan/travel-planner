@@ -333,6 +333,8 @@ export type Database = {
           image_urls: string[] | null;
           location_name: string | null;
           is_public: boolean;
+          rating: number | null;
+          is_favourite: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -347,6 +349,8 @@ export type Database = {
           image_urls?: string[] | null;
           location_name?: string | null;
           is_public?: boolean;
+          rating?: number | null;
+          is_favourite?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -358,6 +362,8 @@ export type Database = {
           image_urls?: string[] | null;
           location_name?: string | null;
           is_public?: boolean;
+          rating?: number | null;
+          is_favourite?: boolean;
           updated_at?: string;
         };
         Relationships: [
