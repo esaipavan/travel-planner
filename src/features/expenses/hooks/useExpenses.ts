@@ -1,0 +1,48 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  getExpenseData,
+  createExpense,
+  updateExpense,
+  deleteExpense,
+} from '../services/expenses.service';
+import type { ExpenseInsert, ExpenseUpdate } from '../types';
+
+export function useExpenseData(tripId: string) {
+  return useQuery({
+    queryKey: ['expenses', tripId],
+    queryFn: () => getExpenseData(tripId),
+    enabled: !!tripId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+function invalidate(qc: ReturnType<typeof useQueryClient>, tripId: string) {
+  qc.invalidateQueries({ queryKey: ['expenses', tripId] });
+  qc.invalidateQueries({ queryKey: ['budget', tripId] });
+  qc.invalidateQueries({ queryKey: ['dashboard'] });
+}
+
+export function useCreateExpense(tripId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ExpenseInsert) => createExpense(data),
+    onSuccess: () => invalidate(qc, tripId),
+  });
+}
+
+export function useUpdateExpense(tripId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ExpenseUpdate }) =>
+      updateExpense(id, data),
+    onSuccess: () => invalidate(qc, tripId),
+  });
+}
+
+export function useDeleteExpense(tripId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteExpense(id),
+    onSuccess: () => invalidate(qc, tripId),
+  });
+}

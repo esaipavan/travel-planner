@@ -1,0 +1,129 @@
+import { supabase } from '@/lib/supabase';
+import type {
+  ItineraryData,
+  ItineraryDay,
+  ItineraryItemInsert,
+  ItineraryItemUpdate,
+  ItineraryItemRow,
+} from '../types';
+
+function getDaysBetween(startDate: string, endDate: string): string[] {
+  const days: string[] = [];
+  const curr = new Date(startDate + 'T00:00:00');
+  const end  = new Date(endDate  + 'T00:00:00');
+  while (curr <= end) {
+    days.push(curr.toISOString().split('T')[0]);
+    curr.setDate(curr.getDate() + 1);
+  }
+  return days;
+}
+
+async function initializeDays(
+  tripId: string,
+  startDate: string,
+  endDate: string,
+): Promise<void> {
+  const { count } = await supabase
+    .from('itinerary_days')
+    .select('id', { count: 'exact', head: true })
+    .eq('trip_id', tripId);
+
+  if ((count ?? 0) > 0) return;
+
+  const inserts = getDaysBetween(startDate, endDate).map((date, i) => ({
+    trip_id: tripId,
+    day_number: i + 1,
+    date,
+  }));
+
+  await supabase.from('itinerary_days').insert(inserts);
+}
+
+export async function getItineraryData(tripId: string): Promise<ItineraryData> {
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('title, currency, start_date, end_date')
+    .eq('id', tripId)
+    .single();
+
+  const tripTitle    = trip?.title      ?? '';
+  const tripCurrency = trip?.currency   ?? 'INR';
+  const startDate    = trip?.start_date ?? '';
+  const endDate      = trip?.end_date   ?? '';
+
+  if (startDate && endDate) {
+    await initializeDays(tripId, startDate, endDate);
+  }
+
+  const { data: dayRows } = await supabase
+    .from('itinerary_days')
+    .select('*')
+    .eq('trip_id', tripId)
+    .order('day_number', { ascending: true });
+
+  const days = dayRows ?? [];
+
+  if (days.length === 0) {
+    return { tripTitle, tripCurrency, startDate, endDate, days: [] };
+  }
+
+  const dayIds = days.map((d) => d.id);
+  const { data: itemRows } = await supabase
+    .from('itinerary_items')
+    .select('*')
+    .in('day_id', dayIds)
+    .order('order_index', { ascending: true });
+
+  const itemsByDay = new Map<string, ItineraryItemRow[]>();
+  for (const item of itemRows ?? []) {
+    const list = itemsByDay.get(item.day_id) ?? [];
+    list.push(item);
+    itemsByDay.set(item.day_id, list);
+  }
+
+  const hydratedDays: ItineraryDay[] = days.map((day) => ({
+    ...day,
+    items: itemsByDay.get(day.id) ?? [],
+  }));
+
+  return { tripTitle, tripCurrency, startDate, endDate, days: hydratedDays };
+}
+
+export async function createItem(data: ItineraryItemInsert): Promise<ItineraryItemRow> {
+  const { data: row, error } = await supabase
+    .from('itinerary_items')
+    .insert(data)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return row;
+}
+
+export async function updateItem(
+  id: string,
+  data: ItineraryItemUpdate,
+): Promise<ItineraryItemRow> {
+  const { data: row, error } = await supabase
+    .from('itinerary_items')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return row;
+}
+
+export async function deleteItem(id: string): Promise<void> {
+  const { error } = await supabase.from('itinerary_items').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function reorderItems(
+  updates: { id: string; order_index: number }[],
+): Promise<void> {
+  await Promise.all(
+    updates.map(({ id, order_index }) =>
+      supabase.from('itinerary_items').update({ order_index }).eq('id', id),
+    ),
+  );
+}
