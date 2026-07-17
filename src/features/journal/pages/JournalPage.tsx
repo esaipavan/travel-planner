@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { Plus, Search, BookOpen, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Search, BookOpen, SlidersHorizontal, X, ArrowLeft } from 'lucide-react';
 import { Button }   from '@/components/ui/button';
 import { Input }    from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { useTrip } from '@/features/trips/hooks/useTrips';
 import {
   useJournalEntries,
   useCreateJournalEntry,
@@ -69,6 +70,7 @@ export default function JournalPage() {
   const { id: tripId } = useParams<{ id: string }>();
   if (!tripId) return <Navigate to="/trips" replace />;
 
+  const { data: trip }                              = useTrip(tripId);
   const { data: entries = [], isLoading, isError } = useJournalEntries(tripId);
 
   const createMutation   = useCreateJournalEntry(tripId);
@@ -175,15 +177,22 @@ export default function JournalPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Travel Journal"
-        description="Document your memories, moods, and favourite moments"
-      >
-        <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Entry
+      <div className="flex items-start gap-3">
+        <Button variant="ghost" size="icon" className="mt-0.5 shrink-0" asChild>
+          <Link to={`/trips/${tripId}`}>
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
         </Button>
-      </PageHeader>
+        <PageHeader
+          title="Travel Journal"
+          description={trip?.title ?? ''}
+        >
+          <Button onClick={openCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Entry
+          </Button>
+        </PageHeader>
+      </div>
 
       {/* Stats */}
       {isLoading ? (
@@ -343,16 +352,6 @@ export default function JournalPage() {
           )}
         </>
       )}
-
-      {/* Back link */}
-      <div className="pt-2">
-        <Link
-          to={`/trips/${tripId}`}
-          className="text-sm text-muted-foreground hover:text-foreground"
-        >
-          ← Back to trip
-        </Link>
-      </div>
 
       {/* Create / Edit dialog */}
       <JournalEntryDialog

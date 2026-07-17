@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Upload, Search, FileText, SlidersHorizontal, X, Clock } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
+import { Upload, Search, FileText, SlidersHorizontal, X, Clock, ArrowLeft } from 'lucide-react';
 import { Button }   from '@/components/ui/button';
 import { Input }    from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -73,8 +74,14 @@ const DEFAULT_FILTERS: DocumentFilters = {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DocumentsPage() {
-  const { data: documents = [], isLoading } = useDocuments();
-  const { data: trips = [] }                = useUserTrips();
+  // Present on /trips/:id/documents; undefined on /documents
+  const { id: tripId } = useParams<{ id?: string }>();
+
+  const { data: documents = [], isLoading }      = useDocuments(tripId);
+  const { data: trips = [], isLoading: tripsLoading } = useUserTrips();
+
+  // Used for the back link label and page description when scoped to a trip
+  const currentTrip = tripId ? trips.find((t) => t.id === tripId) : undefined;
 
   const uploadMutation = useUploadDocument();
   const updateMutation = useUpdateDocument();
@@ -183,11 +190,25 @@ export default function DocumentsPage() {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
+      {tripId && (tripsLoading || currentTrip) && (
+        <Link
+          to={`/trips/${tripId}`}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {currentTrip ? `Back to ${currentTrip.title}` : 'Back to trip'}
+        </Link>
+      )}
+
       <PageHeader
         title="Travel Documents"
-        description="Passports, visas, tickets and all your essential travel paperwork"
+        description={
+          currentTrip
+            ? `Documents for ${currentTrip.title}`
+            : 'Passports, visas, tickets and all your essential travel paperwork'
+        }
       >
-        <Button onClick={openUpload}>
+        <Button onClick={openUpload} disabled={!!tripId && tripsLoading}>
           <Upload className="mr-2 h-4 w-4" />
           Upload Document
         </Button>
@@ -276,8 +297,8 @@ export default function DocumentsPage() {
                   </Select>
                 </div>
 
-                {/* Trip */}
-                {trips.length > 0 && (
+                {/* Trip — hidden when already scoped to a specific trip via URL */}
+                {!tripId && trips.length > 0 && (
                   <div className="flex items-center gap-2">
                     <Label className="shrink-0 text-xs text-muted-foreground">Trip</Label>
                     <Select
@@ -408,6 +429,7 @@ export default function DocumentsPage() {
         trips={trips}
         onSave={handleSave}
         isPending={isSaving}
+        defaultTripId={tripId}
       />
 
       {/* Delete confirmation */}

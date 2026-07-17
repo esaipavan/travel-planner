@@ -75,7 +75,7 @@ function buildCards(tripId: string): SubFeatureCard[] {
     {
       label: 'Documents',
       description: 'Passports, bookings, and attachments',
-      href: '/documents',
+      href: `/trips/${tripId}/documents`,
       icon: FolderOpen,
     },
     {

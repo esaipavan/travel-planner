@@ -18,16 +18,17 @@ import type {
   DocumentType,
 } from '../types';
 
-const DOCS_KEY  = (uid: string) => ['documents', uid] as const;
+const DOCS_KEY  = (uid: string, tripId?: string) =>
+  tripId ? ['documents', uid, tripId] : ['documents', uid];
 const TRIPS_KEY = (uid: string) => ['trips', uid] as const;
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-export function useDocuments() {
+export function useDocuments(tripId?: string) {
   const { user } = useAuthStore();
   return useQuery({
-    queryKey: DOCS_KEY(user?.id ?? ''),
-    queryFn:  () => getDocuments(user!.id),
+    queryKey: DOCS_KEY(user?.id ?? '', tripId),
+    queryFn:  () => getDocuments(user!.id, tripId),
     enabled:  !!user,
     staleTime: 5 * 60_000,
   });
@@ -73,7 +74,7 @@ export function useUploadDocument() {
       return createDocument(insert);
     },
     onSuccess: () => {
-      if (user) void qc.invalidateQueries({ queryKey: DOCS_KEY(user.id) });
+      if (user) void qc.invalidateQueries({ queryKey: ['documents', user.id] });
       toast.success('Document uploaded');
     },
     onError: (err: Error) => toast.error(err.message),
@@ -99,7 +100,7 @@ export function useUpdateDocument() {
       return updateDocument(id, update);
     },
     onSuccess: () => {
-      if (user) void qc.invalidateQueries({ queryKey: DOCS_KEY(user.id) });
+      if (user) void qc.invalidateQueries({ queryKey: ['documents', user.id] });
       toast.success('Document updated');
     },
     onError: (err: Error) => toast.error(err.message),
@@ -119,22 +120,22 @@ export function useDeleteDocument() {
     },
     onMutate: async ({ id }) => {
       if (!user) return;
-      const key = DOCS_KEY(user.id);
-      await qc.cancelQueries({ queryKey: key });
-      const previous = qc.getQueryData<TravelDocumentRow[]>(key);
-      qc.setQueryData<TravelDocumentRow[]>(key, (old) =>
-        old?.filter((d) => d.id !== id) ?? [],
-      );
-      return { previous };
+      const prefix = ['documents', user.id];
+      await qc.cancelQueries({ queryKey: prefix });
+      const snapshots = qc.getQueriesData<TravelDocumentRow[]>({ queryKey: prefix });
+      snapshots.forEach(([key]) => {
+        qc.setQueryData<TravelDocumentRow[]>(key, (old) =>
+          old?.filter((d) => d.id !== id) ?? [],
+        );
+      });
+      return { snapshots };
     },
     onError: (_err, _vars, ctx) => {
-      if (user && ctx?.previous) {
-        qc.setQueryData(DOCS_KEY(user.id), ctx.previous);
-      }
+      ctx?.snapshots?.forEach(([key, data]) => qc.setQueryData(key, data));
       toast.error('Failed to delete document');
     },
     onSettled: () => {
-      if (user) void qc.invalidateQueries({ queryKey: DOCS_KEY(user.id) });
+      if (user) void qc.invalidateQueries({ queryKey: ['documents', user.id] });
     },
     onSuccess: () => toast.success('Document deleted'),
   });

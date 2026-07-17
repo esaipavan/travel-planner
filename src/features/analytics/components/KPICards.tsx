@@ -74,7 +74,7 @@ const CARDS: CardDef[] = [
 
 export const KPICards = memo(function KPICards({ data, currency }: Props) {
   return (
-    <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {CARDS.map(({ label, getValue, icon: Icon, highlight }) => {
         const isHighlighted = highlight?.(data) ?? false;
         return (

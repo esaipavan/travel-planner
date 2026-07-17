@@ -47,12 +47,13 @@ interface TripOption {
 }
 
 interface Props {
-  open:         boolean;
-  onOpenChange: (open: boolean) => void;
-  document?:    TravelDocumentRow | null;
-  trips:        TripOption[];
-  onSave:       (values: DocumentFormValues, file?: File) => Promise<void>;
-  isPending:    boolean;
+  open:           boolean;
+  onOpenChange:   (open: boolean) => void;
+  document?:      TravelDocumentRow | null;
+  trips:          TripOption[];
+  onSave:         (values: DocumentFormValues, file?: File) => Promise<void>;
+  isPending:      boolean;
+  defaultTripId?: string | null;
 }
 
 const EMPTY_DEFAULTS: DocumentFormValues = {
@@ -65,7 +66,7 @@ const EMPTY_DEFAULTS: DocumentFormValues = {
 };
 
 export function DocumentDialog({
-  open, onOpenChange, document: doc, trips, onSave, isPending,
+  open, onOpenChange, document: doc, trips, onSave, isPending, defaultTripId,
 }: Props) {
   const isEdit = !!doc;
 
@@ -91,12 +92,12 @@ export function DocumentDialog({
         notes:       doc.notes       ?? '',
       });
     } else {
-      form.reset(EMPTY_DEFAULTS);
+      form.reset({ ...EMPTY_DEFAULTS, trip_id: defaultTripId ?? null });
     }
     setFile(null);
     setFilePreview(null);
     setFileError('');
-  }, [open, doc, form]);
+  }, [open, doc, defaultTripId, form]);
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const picked = e.target.files?.[0];

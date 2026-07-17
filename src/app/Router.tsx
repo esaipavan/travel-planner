@@ -158,6 +158,7 @@ const router = createBrowserRouter([
       { path: '/trips/:id/checklist', element: <Wrap><ChecklistPage /></Wrap> },
       { path: '/trips/:id/journal', element: <Wrap><JournalPage /></Wrap> },
       { path: '/trips/:id/export', element: <Wrap><ExportPage /></Wrap> },
+      { path: '/trips/:id/documents', element: <Wrap><DocumentsPage /></Wrap> },
       { path: '/weather', element: <Wrap><WeatherPage /></Wrap> },
       { path: '/currency', element: <Wrap><CurrencyPage /></Wrap> },
       { path: '/nearby', element: <Wrap><NearbyPage /></Wrap> },

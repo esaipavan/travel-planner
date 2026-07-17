@@ -5,12 +5,14 @@ const BUCKET = 'travel-documents';
 
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 
-export async function getDocuments(userId: string): Promise<TravelDocumentRow[]> {
-  const { data, error } = await supabase
+export async function getDocuments(userId: string, tripId?: string): Promise<TravelDocumentRow[]> {
+  const base = supabase
     .from('travel_documents')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
+
+  const { data, error } = await (tripId ? base.eq('trip_id', tripId) : base);
   if (error) throw new Error(error.message);
   return data ?? [];
 }
