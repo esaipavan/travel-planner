@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, Map,
-  Cloud, DollarSign, MapPin, Globe, FileText,
+  Cloud, DollarSign, MapPin, Globe, FileText, Bell,
   MessageSquare, BarChart2, User, Settings, Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,8 @@ const toolItems = [
   { to: '/currency', icon: DollarSign, label: 'Currency' },
   { to: '/nearby', icon: MapPin, label: 'Nearby Places' },
   { to: '/destination', icon: Globe, label: 'Destination Guide' },
-  { to: '/documents', icon: FileText, label: 'Documents' },
+  { to: '/documents', icon: FileText,    label: 'Documents' },
+  { to: '/reminders', icon: Bell,        label: 'Reminders' },
   { to: '/assistant', icon: MessageSquare, label: 'AI Assistant' },
 ];
 

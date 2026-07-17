@@ -34,8 +34,9 @@ const WeatherPage = lazy(() => import('@/features/weather/pages/WeatherPage'));
 const CurrencyPage = lazy(() => import('@/features/currency/pages/CurrencyPage'));
 const NearbyPage = lazy(() => import('@/features/nearby/pages/NearbyPage'));
 const DestinationPage = lazy(() => import('@/features/destination/pages/DestinationPage'));
-const DocumentsPage = lazy(() => import('@/features/documents/pages/DocumentsPage'));
-const AssistantPage = lazy(() => import('@/features/assistant/pages/AssistantPage'));
+const DocumentsPage  = lazy(() => import('@/features/documents/pages/DocumentsPage'));
+const RemindersPage  = lazy(() => import('@/features/reminders/pages/RemindersPage'));
+const AssistantPage  = lazy(() => import('@/features/assistant/pages/AssistantPage'));
 const AnalyticsPage = lazy(() => import('@/features/analytics/pages/AnalyticsPage'));
 const ExportPage = lazy(() => import('@/features/export/pages/ExportPage'));
 const ProfilePage = lazy(() => import('@/features/profile/pages/ProfilePage'));
@@ -162,6 +163,7 @@ const router = createBrowserRouter([
       { path: '/nearby', element: <Wrap><NearbyPage /></Wrap> },
       { path: '/destination', element: <Wrap><DestinationPage /></Wrap> },
       { path: '/documents', element: <Wrap><DocumentsPage /></Wrap> },
+      { path: '/reminders', element: <Wrap><RemindersPage /></Wrap> },
       { path: '/assistant', element: <Wrap><AssistantPage /></Wrap> },
       { path: '/analytics', element: <Wrap><AnalyticsPage /></Wrap> },
       { path: '/profile', element: <Wrap><ProfilePage /></Wrap> },

@@ -544,6 +544,68 @@ export type Database = {
         Update: Record<string, never>;
         Relationships: [];
       };
+      reminders: {
+        Row: {
+          id: string;
+          user_id: string;
+          trip_id: string | null;
+          title: string;
+          description: string | null;
+          type: Database['public']['Enums']['reminder_type'];
+          reminder_date: string;
+          reminder_time: string | null;
+          priority: Database['public']['Enums']['reminder_priority'];
+          status: Database['public']['Enums']['reminder_status'];
+          repeat: Database['public']['Enums']['reminder_repeat'];
+          is_snoozed: boolean;
+          snoozed_until: string | null;
+          completed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          trip_id?: string | null;
+          title: string;
+          description?: string | null;
+          type?: Database['public']['Enums']['reminder_type'];
+          reminder_date: string;
+          reminder_time?: string | null;
+          priority?: Database['public']['Enums']['reminder_priority'];
+          status?: Database['public']['Enums']['reminder_status'];
+          repeat?: Database['public']['Enums']['reminder_repeat'];
+          is_snoozed?: boolean;
+          snoozed_until?: string | null;
+          completed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          trip_id?: string | null;
+          title?: string;
+          description?: string | null;
+          type?: Database['public']['Enums']['reminder_type'];
+          reminder_date?: string;
+          reminder_time?: string | null;
+          priority?: Database['public']['Enums']['reminder_priority'];
+          status?: Database['public']['Enums']['reminder_status'];
+          repeat?: Database['public']['Enums']['reminder_repeat'];
+          is_snoozed?: boolean;
+          snoozed_until?: string | null;
+          completed_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reminders_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -585,6 +647,20 @@ export type Database = {
         | 'driving_license'
         | 'other';
       payment_method: 'cash' | 'card' | 'upi' | 'bank_transfer' | 'other';
+      reminder_type:
+        | 'passport'
+        | 'visa'
+        | 'flight'
+        | 'hotel'
+        | 'packing'
+        | 'payment'
+        | 'insurance'
+        | 'vaccination'
+        | 'check_in'
+        | 'custom';
+      reminder_priority: 'low' | 'medium' | 'high';
+      reminder_status: 'pending' | 'completed';
+      reminder_repeat: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
     };
     CompositeTypes: Record<string, never>;
   };

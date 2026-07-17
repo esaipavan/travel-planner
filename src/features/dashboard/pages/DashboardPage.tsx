@@ -1,10 +1,11 @@
-import { WelcomeCard } from '../components/WelcomeCard';
-import { StatsGrid } from '../components/StatsGrid';
-import { UpcomingTrips } from '../components/UpcomingTrips';
+import { WelcomeCard }         from '../components/WelcomeCard';
+import { StatsGrid }           from '../components/StatsGrid';
+import { UpcomingTrips }       from '../components/UpcomingTrips';
 import { BudgetVsActualChart } from '../components/BudgetVsActualChart';
-import { RecentExpenses } from '../components/RecentExpenses';
-import { WeatherWidget } from '../components/WeatherWidget';
-import { QuickActions } from '../components/QuickActions';
+import { RecentExpenses }      from '../components/RecentExpenses';
+import { WeatherWidget }       from '../components/WeatherWidget';
+import { QuickActions }        from '../components/QuickActions';
+import { UpcomingReminders }   from '../components/UpcomingReminders';
 
 export default function DashboardPage() {
   return (
@@ -17,9 +18,10 @@ export default function DashboardPage() {
         </div>
         <WeatherWidget />
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         <UpcomingTrips />
         <RecentExpenses />
+        <UpcomingReminders />
       </div>
       <QuickActions />
     </div>
