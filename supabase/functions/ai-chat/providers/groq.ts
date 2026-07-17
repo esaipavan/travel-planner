@@ -2,7 +2,7 @@ import type { IAIProvider, AIMessage } from '../types.ts';
 
 export class GroqProvider implements IAIProvider {
   readonly name = 'groq';
-  readonly model = 'llama3-70b-8192';
+  readonly model = 'llama-3.3-70b-versatile';
 
   private apiKey: string;
 

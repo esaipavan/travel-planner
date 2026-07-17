@@ -24,47 +24,57 @@ async function fetchUserRole(userId: string): Promise<UserRole> {
 }
 
 export function AuthInitializer() {
-  const { setUser, setSession, setRole, setLoading, reset } = useAuthStore();
+  const { setUser, setSession, setRole, setLoading } = useAuthStore();
 
   useEffect(() => {
+    // Subscribe before getSession() so no SIGNED_IN / TOKEN_REFRESHED events are missed.
+    // Callback is intentionally synchronous — Supabase discourages async callbacks here.
+    // Role fetching is fire-and-forget; errors fall back to UserRole.USER.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+
+      if (session?.user) {
+        fetchUserRole(session.user.id)
+          .then((role) => setRole(role))
+          .catch(() => setRole(UserRole.USER));
+      } else {
+        setRole(UserRole.USER);
+      }
+    });
+
+    // getSession() is the single source of truth for the initial isLoading flag.
+    // It waits for Supabase's internal initializePromise (session recovery + token
+    // refresh) before resolving, so by the time finally() fires the auth state is
+    // fully settled and route guards can make a reliable decision.
     supabase.auth
       .getSession()
-      .then(async ({ data: { session } }) => {
+      .then(({ data: { session } }) => {
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const role = await fetchUserRole(session.user.id);
-          setRole(role);
+          fetchUserRole(session.user.id)
+            .then((role) => setRole(role))
+            .catch(() => setRole(UserRole.USER));
         }
       })
-      .catch(() => {
-        reset();
+      .catch((err) => {
+        // Log but do NOT call reset() — a transient network error during token
+        // refresh must not clear a valid session that onAuthStateChange already set.
+        console.warn('[AuthInitializer] getSession error:', err);
       })
       .finally(() => {
         setLoading(false);
       });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        const role = await fetchUserRole(session.user.id);
-        setRole(role);
-      } else {
-        setRole(UserRole.USER);
-      }
-
-      setLoading(false);
-    });
-
     return () => {
       subscription.unsubscribe();
     };
-  }, [setUser, setSession, setRole, setLoading, reset]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return null;
 }
