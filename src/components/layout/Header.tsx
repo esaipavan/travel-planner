@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, LogOut, User, Settings } from 'lucide-react';
+import { SyncIndicator } from '@/components/pwa/SyncIndicator';
+import { InstallButton } from '@/components/pwa/InstallButton';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -44,6 +46,8 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
+        <SyncIndicator />
+        <InstallButton />
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>

@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { queryClient } from '@/lib/queryClient';
 import { AuthInitializer } from '@/components/providers/AuthInitializer';
 import { ThemeInitializer } from '@/components/providers/ThemeInitializer';
+import { PWAUpdatePrompt } from '@/components/pwa/PWAUpdatePrompt';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export function Providers({ children }: ProvidersProps) {
       <TooltipProvider>
         <AuthInitializer />
         <ThemeInitializer />
+        <PWAUpdatePrompt />
         {children}
         <Toaster richColors position="top-right" />
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

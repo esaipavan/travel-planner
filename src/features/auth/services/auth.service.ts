@@ -4,7 +4,7 @@ import type { AuthError } from '@supabase/supabase-js';
 const RETURN_TO_KEY = 'auth:return_to';
 
 function getAppUrl(): string {
-  return import.meta.env.VITE_APP_URL ?? window.location.origin;
+  return window.location.origin;
 }
 
 export async function signIn(email: string, password: string): Promise<void> {
