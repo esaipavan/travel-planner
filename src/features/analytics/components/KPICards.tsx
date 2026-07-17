@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   Map, Plane, CheckCircle, Globe,
   Wallet, Receipt, TrendingDown, Calculator,
@@ -71,7 +72,7 @@ const CARDS: CardDef[] = [
   },
 ];
 
-export function KPICards({ data, currency }: Props) {
+export const KPICards = memo(function KPICards({ data, currency }: Props) {
   return (
     <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
       {CARDS.map(({ label, getValue, icon: Icon, highlight }) => {
@@ -103,4 +104,4 @@ export function KPICards({ data, currency }: Props) {
       })}
     </div>
   );
-}
+});

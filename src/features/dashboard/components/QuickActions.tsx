@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { PlusCircle, Receipt, Map } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -17,7 +18,7 @@ const ACTIONS: Action[] = [
   { label: 'View Trips', icon: Map, to: '/trips', variant: 'outline' },
 ];
 
-export function QuickActions() {
+export const QuickActions = memo(function QuickActions() {
   return (
     <Card>
       <CardHeader className="pb-4">
@@ -40,4 +41,4 @@ export function QuickActions() {
       </CardContent>
     </Card>
   );
-}
+});

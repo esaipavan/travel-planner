@@ -2,6 +2,7 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   plugins: [
@@ -111,13 +112,35 @@ export default defineConfig({
     target: 'esnext',
     sourcemap: true,
     rollupOptions: {
+      plugins: [
+        process.env.ANALYZE === 'true' &&
+          visualizer({ open: true, filename: 'dist/stats.html', gzipSize: true }),
+      ],
       output: {
-        manualChunks: {
-          vendor:   ['react', 'react-dom', 'react-router-dom'],
-          query:    ['@tanstack/react-query'],
-          supabase: ['@supabase/supabase-js'],
-          charts:   ['recharts'],
-          maps:     ['leaflet', 'react-leaflet'],
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          // Core framework — always in the critical path
+          if (
+            id.includes('/react-dom/') ||
+            id.includes('/react/') ||
+            id.includes('/react-router') ||
+            id.includes('/scheduler/')
+          ) return 'vendor';
+          // Data layer
+          if (id.includes('/@tanstack/'))  return 'query';
+          if (id.includes('/@supabase/'))  return 'supabase';
+          // Charts — recharts bundles its own d3 tree, keep together
+          if (id.includes('/recharts/') || id.includes('/d3-') || id.includes('/victory-vendor')) return 'charts';
+          // Icons — lucide-react is used by every page; named chunk stabilises its hash
+          if (id.includes('/lucide-react/')) return 'icons';
+          // Headless UI — Radix primitives + shadcn wrappers
+          if (id.includes('/@radix-ui/')) return 'ui';
+          // Date utilities
+          if (id.includes('/date-fns/')) return 'date-fns';
+          // Form validation
+          if (id.includes('/zod/') || id.includes('/@hookform/')) return 'validation';
+          // Map libraries (NearbyPage only — lazy-loaded per-route)
+          if (id.includes('/leaflet/') || id.includes('/react-leaflet/')) return 'maps';
         },
       },
     },

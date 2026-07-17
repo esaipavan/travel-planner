@@ -90,6 +90,16 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
     [journalEntries, filteredTripIds],
   );
 
+  // Expense total per trip — single O(n) pass shared by kpis, budgetVsActual, and insights.
+  // Eliminates three independent O(expenses × trips) scans those memos previously performed.
+  const expensesByTripId = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const e of filteredExpenses) {
+      map.set(e.trip_id, (map.get(e.trip_id) ?? 0) + e.amount);
+    }
+    return map;
+  }, [filteredExpenses]);
+
   // ── Currency (most common among filtered trips) ───────────────────────────
   const currency = useMemo(() => {
     if (!filteredTrips.length) return 'INR';
@@ -111,21 +121,19 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
       filteredTrips.map((t) => t.country_code ?? t.destination),
     ).size;
     const totalBudget    = filteredTrips.reduce((s, t) => s + (t.total_budget ?? 0), 0);
-    const totalExpenses  = filteredExpenses.reduce((s, e) => s + e.amount, 0);
+    const totalExpenses  = Array.from(expensesByTripId.values()).reduce((s, v) => s + v, 0);
     const budgetRemaining = totalBudget - totalExpenses;
-    const completedExpenses = filteredExpenses.filter((e) => {
-      const trip = filteredTrips.find((t) => t.id === e.trip_id);
-      return trip?.status === 'completed';
-    });
     const avgTripCost = completedTrips > 0
-      ? completedExpenses.reduce((s, e) => s + e.amount, 0) / completedTrips
+      ? filteredTrips
+          .filter((t) => t.status === 'completed')
+          .reduce((s, t) => s + (expensesByTripId.get(t.id) ?? 0), 0) / completedTrips
       : 0;
 
     return {
       totalTrips, upcomingTrips, completedTrips, countriesVisited,
       totalBudget, totalExpenses, budgetRemaining, avgTripCost,
     };
-  }, [filteredTrips, filteredExpenses]);
+  }, [filteredTrips, expensesByTripId]);
 
   // ── Chart: monthly expenses (last 12 months) ─────────────────────────────
   const monthlyExpenses = useMemo(() => {
@@ -165,15 +173,13 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
     filteredTrips
       .filter((t) => t.total_budget && t.total_budget > 0)
       .map((t) => {
-        const actual = filteredExpenses
-          .filter((e) => e.trip_id === t.id)
-          .reduce((s, e) => s + e.amount, 0);
+        const actual = expensesByTripId.get(t.id) ?? 0;
         const title = t.title.length > 12 ? t.title.slice(0, 12) + '…' : t.title;
         return { name: title, budget: t.total_budget ?? 0, actual: Math.round(actual) };
       })
       .sort((a, b) => b.budget - a.budget)
       .slice(0, 6),
-  [filteredTrips, filteredExpenses]);
+  [filteredTrips, expensesByTripId]);
 
   // ── Chart: trips started per month (last 12 months) ──────────────────────
   const tripsPerMonth = useMemo(() => {
@@ -233,9 +239,7 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
     const tripSpending = filteredTrips
       .map((t) => ({
         title:  t.title,
-        amount: filteredExpenses
-          .filter((e) => e.trip_id === t.id)
-          .reduce((s, e) => s + e.amount, 0),
+        amount: expensesByTripId.get(t.id) ?? 0,
       }))
       .filter((t) => t.amount > 0);
 
@@ -290,7 +294,7 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
 
     // Budget utilisation
     const totalBudget  = filteredTrips.reduce((s, t) => s + (t.total_budget ?? 0), 0);
-    const totalSpent   = filteredExpenses.reduce((s, e) => s + e.amount, 0);
+    const totalSpent   = Array.from(expensesByTripId.values()).reduce((s, v) => s + v, 0);
     const budgetUtilization = totalBudget > 0
       ? Math.round((totalSpent / totalBudget) * 100)
       : 0;
@@ -305,7 +309,7 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
       upcomingRemindersCount,
       budgetUtilization,
     };
-  }, [filteredTrips, filteredExpenses, filteredJournal, documents, reminders]);
+  }, [filteredTrips, expensesByTripId, filteredJournal, documents, reminders]);
 
   return {
     isLoading,

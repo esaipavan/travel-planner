@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   TrendingUp, TrendingDown, MapPin, Clock,
   Star, FileWarning, Bell, PieChart,
@@ -28,7 +29,7 @@ interface InsightCardProps {
   highlight?: boolean;
 }
 
-function InsightCard({ icon, label, value, sub, highlight }: InsightCardProps) {
+const InsightCard = memo(function InsightCard({ icon, label, value, sub, highlight }: InsightCardProps) {
   return (
     <div
       className={`flex items-start gap-3 rounded-xl border p-4 ${
@@ -47,9 +48,9 @@ function InsightCard({ icon, label, value, sub, highlight }: InsightCardProps) {
       </div>
     </div>
   );
-}
+});
 
-export function InsightsPanel({ insights, currency }: Props) {
+export const InsightsPanel = memo(function InsightsPanel({ insights, currency }: Props) {
   const {
     highestSpendingTrip,
     lowestSpendingTrip,
@@ -113,4 +114,4 @@ export function InsightsPanel({ insights, currency }: Props) {
       </div>
     </div>
   );
-}
+});

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useAnalyticsData } from '../hooks/useAnalytics';
@@ -7,12 +7,13 @@ import type { AnalyticsFilters } from '../types';
 import { KPICards } from '../components/KPICards';
 import { AnalyticsFilters as AnalyticsFilterBar } from '../components/AnalyticsFilters';
 import { InsightsPanel } from '../components/InsightsPanel';
-import { ExpenseLineChart } from '../components/charts/ExpenseLineChart';
-import { ExpensePieChart } from '../components/charts/ExpensePieChart';
-import { BudgetBarChart } from '../components/charts/BudgetBarChart';
-import { TripsAreaChart } from '../components/charts/TripsAreaChart';
-import { JournalRatingsChart } from '../components/charts/JournalRatingsChart';
-import { ReminderDonutChart } from '../components/charts/ReminderDonutChart';
+
+const ExpenseLineChart  = lazy(() => import('../components/charts/ExpenseLineChart').then(m => ({ default: m.ExpenseLineChart })));
+const ExpensePieChart   = lazy(() => import('../components/charts/ExpensePieChart').then(m => ({ default: m.ExpensePieChart })));
+const BudgetBarChart    = lazy(() => import('../components/charts/BudgetBarChart').then(m => ({ default: m.BudgetBarChart })));
+const TripsAreaChart    = lazy(() => import('../components/charts/TripsAreaChart').then(m => ({ default: m.TripsAreaChart })));
+const JournalRatingsChart = lazy(() => import('../components/charts/JournalRatingsChart').then(m => ({ default: m.JournalRatingsChart })));
+const ReminderDonutChart  = lazy(() => import('../components/charts/ReminderDonutChart').then(m => ({ default: m.ReminderDonutChart })));
 
 function KPISkeleton() {
   return (
@@ -115,14 +116,26 @@ export default function AnalyticsPage() {
           </>
         ) : (
           <>
-            <ExpenseLineChart data={monthlyExpenses} currency={currency} />
-            <ExpensePieChart  data={expenseByCategory} currency={currency} />
-            <BudgetBarChart   data={budgetVsActual} currency={currency} />
-            <TripsAreaChart   data={tripsPerMonth} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <ExpenseLineChart data={monthlyExpenses} currency={currency} />
+            </Suspense>
+            <Suspense fallback={<ChartSkeleton />}>
+              <ExpensePieChart data={expenseByCategory} currency={currency} />
+            </Suspense>
+            <Suspense fallback={<ChartSkeleton />}>
+              <BudgetBarChart data={budgetVsActual} currency={currency} />
+            </Suspense>
+            <Suspense fallback={<ChartSkeleton />}>
+              <TripsAreaChart data={tripsPerMonth} />
+            </Suspense>
             <div className="md:col-span-2">
-              <JournalRatingsChart data={journalRatings} />
+              <Suspense fallback={<ChartSkeleton className="md:col-span-2" />}>
+                <JournalRatingsChart data={journalRatings} />
+              </Suspense>
             </div>
-            <ReminderDonutChart data={reminderStatus} />
+            <Suspense fallback={<ChartSkeleton />}>
+              <ReminderDonutChart data={reminderStatus} />
+            </Suspense>
           </>
         )}
       </div>
