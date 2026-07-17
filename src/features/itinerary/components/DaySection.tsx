@@ -117,9 +117,14 @@ export function DaySection({ day, tripId, currency }: Props) {
     <div className="rounded-lg border bg-card">
       {/* Day header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <div>
-          <h3 className="font-semibold">Day {day.day_number}</h3>
-          <p className="text-sm text-muted-foreground">{formatDate(day.date)}</p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+            {day.day_number}
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold leading-tight">Day {day.day_number}</h3>
+            <p className="text-xs text-muted-foreground">{formatDate(day.date)}</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {totalCost > 0 && (

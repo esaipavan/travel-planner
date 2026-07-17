@@ -72,7 +72,7 @@ export default function BudgetPage() {
       {/* Active categories */}
       {activeItems.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
             Category breakdown
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -91,7 +91,7 @@ export default function BudgetPage() {
       {/* Unbudgeted categories */}
       {inactiveItems.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
             Unbudgeted categories
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

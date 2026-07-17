@@ -87,7 +87,7 @@ export function ItineraryItemCard({ item, currency, onEdit, onDelete, dragHandle
         )}
       </div>
 
-      <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="flex shrink-0 items-center gap-1 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
         <Button
           size="icon"
           variant="ghost"

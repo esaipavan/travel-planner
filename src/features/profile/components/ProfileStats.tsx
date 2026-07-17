@@ -13,13 +13,13 @@ interface StatCardProps {
 
 function StatCard({ icon, label, value }: StatCardProps) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-        {icon}
-      </div>
-      <div>
+    <div className="flex items-center justify-between rounded-xl border bg-card p-4">
+      <div className="space-y-0.5">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
         <p className="text-xl font-bold leading-none tabular-nums">{value}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
+      </div>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+        {icon}
       </div>
     </div>
   );
@@ -32,35 +32,37 @@ export function ProfileStats() {
 
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-semibold">Statistics</h2>
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
+        Statistics
+      </p>
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
         <StatCard
-          icon={<Map className="h-5 w-5 text-primary" />}
+          icon={<Map className="h-4.5 w-4.5 text-primary" />}
           label="Total Trips"
           value={stats.totalTrips}
         />
         <StatCard
-          icon={<Globe className="h-5 w-5 text-primary" />}
+          icon={<Globe className="h-4.5 w-4.5 text-primary" />}
           label="Countries Visited"
           value={stats.countriesVisited}
         />
         <StatCard
-          icon={<BookOpen className="h-5 w-5 text-primary" />}
+          icon={<BookOpen className="h-4.5 w-4.5 text-primary" />}
           label="Journal Entries"
           value={stats.journalEntries}
         />
         <StatCard
-          icon={<FileText className="h-5 w-5 text-primary" />}
-          label="Documents Stored"
+          icon={<FileText className="h-4.5 w-4.5 text-primary" />}
+          label="Documents"
           value={stats.documentsStored}
         />
         <StatCard
-          icon={<Bell className="h-5 w-5 text-primary" />}
+          icon={<Bell className="h-4.5 w-4.5 text-primary" />}
           label="Reminders"
           value={stats.reminders}
         />
         <StatCard
-          icon={<Receipt className="h-5 w-5 text-primary" />}
+          icon={<Receipt className="h-4.5 w-4.5 text-primary" />}
           label="Total Expenses"
           value={formatCurrency(stats.totalExpenses, currency)}
         />

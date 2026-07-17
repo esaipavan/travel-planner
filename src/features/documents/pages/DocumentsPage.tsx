@@ -190,29 +190,28 @@ export default function DocumentsPage() {
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {tripId && (tripsLoading || currentTrip) && (
-        <Link
-          to={`/trips/${tripId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      <div className="flex items-start gap-3">
+        {tripId && (tripsLoading || currentTrip) && (
+          <Button variant="ghost" size="icon" className="mt-0.5 shrink-0" asChild>
+            <Link to={`/trips/${tripId}`}>
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
+        <PageHeader
+          title="Travel Documents"
+          description={
+            currentTrip
+              ? currentTrip.title
+              : 'Passports, visas, tickets and all your essential travel paperwork'
+          }
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          {currentTrip ? `Back to ${currentTrip.title}` : 'Back to trip'}
-        </Link>
-      )}
-
-      <PageHeader
-        title="Travel Documents"
-        description={
-          currentTrip
-            ? `Documents for ${currentTrip.title}`
-            : 'Passports, visas, tickets and all your essential travel paperwork'
-        }
-      >
-        <Button onClick={openUpload} disabled={!!tripId && tripsLoading}>
-          <Upload className="mr-2 h-4 w-4" />
-          Upload Document
-        </Button>
-      </PageHeader>
+          <Button onClick={openUpload} disabled={!!tripId && tripsLoading}>
+            <Upload className="mr-2 h-4 w-4" />
+            Upload Document
+          </Button>
+        </PageHeader>
+      </div>
 
       {isLoading ? (
         <DocsSkeleton />

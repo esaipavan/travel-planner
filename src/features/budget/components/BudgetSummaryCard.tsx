@@ -1,10 +1,20 @@
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { LucideIcon } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
 import type { BudgetSummary } from '../types';
 
 interface Props {
   summary: BudgetSummary;
+}
+
+interface StatDef {
+  label: string;
+  value: string;
+  sub: string;
+  icon: LucideIcon;
+  iconClass: string;
+  bgClass: string;
 }
 
 function pct(spent: number, total: number): number {
@@ -25,13 +35,14 @@ export function BudgetSummaryCard({ summary }: Props) {
   const overallPct = tripBudget ? pct(totalSpent, tripBudget) : pct(totalSpent, totalAllocated);
   const isOverBudget = remaining < 0;
 
-  const stats = [
+  const stats: StatDef[] = [
     {
       label: 'Trip Budget',
       value: tripBudget != null ? fmt(tripBudget) : '—',
       sub: 'Total set on trip',
       icon: Wallet,
       iconClass: 'text-primary',
+      bgClass: 'bg-primary/10',
     },
     {
       label: 'Allocated',
@@ -40,36 +51,49 @@ export function BudgetSummaryCard({ summary }: Props) {
         ? `${fmt(unallocated)} unallocated`
         : 'Across all categories',
       icon: PiggyBank,
-      iconClass: 'text-blue-500',
+      iconClass: 'text-blue-600 dark:text-blue-400',
+      bgClass: 'bg-blue-50 dark:bg-blue-950/40',
     },
     {
       label: 'Spent',
       value: fmt(totalSpent),
       sub: `${overallPct}% of ${tripBudget != null ? 'budget' : 'allocated'}`,
       icon: TrendingUp,
-      iconClass: 'text-amber-500',
+      iconClass: 'text-amber-600 dark:text-amber-400',
+      bgClass: 'bg-amber-50 dark:bg-amber-950/40',
     },
     {
       label: isOverBudget ? 'Over Budget' : 'Remaining',
       value: fmt(Math.abs(remaining)),
-      sub: isOverBudget ? 'You have exceeded your budget' : 'Left to spend',
+      sub: isOverBudget ? 'Exceeded your budget' : 'Left to spend',
       icon: TrendingDown,
-      iconClass: isOverBudget ? 'text-destructive' : 'text-emerald-500',
+      iconClass: isOverBudget
+        ? 'text-destructive'
+        : 'text-emerald-600 dark:text-emerald-400',
+      bgClass: isOverBudget
+        ? 'bg-destructive/10'
+        : 'bg-emerald-50 dark:bg-emerald-950/40',
     },
   ];
 
   return (
     <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ label, value, sub, icon: Icon, iconClass }) => (
+        {stats.map(({ label, value, sub, icon: Icon, iconClass, bgClass }) => (
           <Card key={label}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-              <Icon className={`h-4 w-4 ${iconClass}`} />
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold tabular-nums">{value}</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {label}
+                  </p>
+                  <p className="text-2xl font-bold tabular-nums">{value}</p>
+                  <p className="text-xs text-muted-foreground">{sub}</p>
+                </div>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bgClass}`}>
+                  <Icon className={`h-5 w-5 ${iconClass}`} />
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -78,26 +102,22 @@ export function BudgetSummaryCard({ summary }: Props) {
       {/* Overall progress bar */}
       {(tripBudget != null || totalAllocated > 0) && (
         <Card>
-          <CardContent className="pt-4">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Overall spend</span>
-              <span className={`font-medium tabular-nums ${isOverBudget ? 'text-destructive' : ''}`}>
+              <span className="font-medium">Overall spend</span>
+              <span className={`tabular-nums ${isOverBudget ? 'font-semibold text-destructive' : 'text-muted-foreground'}`}>
                 {fmt(totalSpent)} / {fmt(tripBudget ?? totalAllocated)}
               </span>
             </div>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-muted">
+            <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${progressColor(overallPct)}`}
                 style={{ width: `${overallPct}%` }}
               />
             </div>
-            <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-              <span>0%</span>
-              <span className={overallPct >= 90 ? 'font-semibold text-destructive' : ''}>
-                {overallPct}%
-              </span>
-              <span>100%</span>
-            </div>
+            <p className={`mt-1.5 text-right text-xs tabular-nums ${overallPct >= 90 ? 'font-medium text-destructive' : 'text-muted-foreground'}`}>
+              {overallPct}% used
+            </p>
           </CardContent>
         </Card>
       )}

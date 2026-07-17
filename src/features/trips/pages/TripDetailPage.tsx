@@ -175,7 +175,7 @@ export default function TripDetailPage() {
       {/* Trip hero card */}
       <Card className="overflow-hidden">
         <div
-          className="h-36 bg-gradient-to-br from-primary/30 via-primary/15 to-background"
+          className="relative h-44 bg-gradient-to-br from-primary/40 via-primary/20 to-primary/5 sm:h-52"
           style={
             trip.cover_image_url
               ? {
@@ -185,46 +185,56 @@ export default function TripDetailPage() {
                 }
               : undefined
           }
-        />
-        <CardContent className="flex flex-wrap gap-6 p-4 pt-4 sm:p-6">
-          <div className="flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span>{trip.destination}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
-            <span>
-              {formatDateRange(trip.start_date, trip.end_date)} · {duration} day
-              {duration !== 1 ? 's' : ''}
-            </span>
-          </div>
-          {trip.total_budget != null && (
-            <div className="text-sm font-medium">
-              {formatCurrency(trip.total_budget, trip.currency)} budget
-            </div>
+        >
+          {trip.cover_image_url && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           )}
-          <TripStatusBadge status={trip.status} />
+          <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+            <TripStatusBadge status={trip.status} />
+          </div>
+        </div>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              {trip.destination}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5 shrink-0" />
+              {formatDateRange(trip.start_date, trip.end_date)}
+              <span className="text-muted-foreground/60">·</span>
+              {duration} day{duration !== 1 ? 's' : ''}
+            </span>
+            {trip.total_budget != null && (
+              <span className="flex items-center gap-1.5 font-medium text-foreground">
+                <Wallet className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                {formatCurrency(trip.total_budget, trip.currency)}
+              </span>
+            )}
+          </div>
           {trip.notes && (
-            <p className="w-full text-sm text-muted-foreground">{trip.notes}</p>
+            <p className="mt-3 text-sm text-muted-foreground">{trip.notes}</p>
           )}
         </CardContent>
       </Card>
 
       {/* Sub-feature navigation grid */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
           Trip tools
-        </h2>
+        </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map(({ label, description, href, icon: Icon }) => (
             <Link key={label} to={href}>
-              <Card className="h-full transition-shadow hover:shadow-md">
-                <CardContent className="flex flex-col gap-2 p-4">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Card className="h-full transition-all hover:border-primary/40 hover:shadow-sm">
+                <CardContent className="flex flex-col gap-2.5 p-4">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="h-4 w-4" />
                   </div>
-                  <p className="font-semibold leading-none">{label}</p>
-                  <p className="text-xs text-muted-foreground">{description}</p>
+                  <div>
+                    <p className="text-sm font-semibold leading-tight">{label}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+                  </div>
                 </CardContent>
               </Card>
             </Link>

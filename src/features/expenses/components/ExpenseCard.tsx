@@ -75,7 +75,7 @@ export function ExpenseCard({ expense, budgetAllocated, onEdit, onDelete }: Prop
           {formatCurrency(expense.amount, expense.currency)}
         </p>
 
-        <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className="flex items-center gap-1 lg:opacity-0 lg:transition-opacity lg:group-hover:opacity-100">
           {expense.receipt_url && (
             <Button
               size="icon"

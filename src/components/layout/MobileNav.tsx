@@ -7,17 +7,18 @@ interface MobileNavProps {
 }
 
 const mobileItems = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Home' },
-  { to: '/trips', icon: Map, label: 'Trips' },
-  { to: '/assistant', icon: MessageSquare, label: 'AI' },
-  { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/dashboard', icon: LayoutDashboard, label: 'Home'    },
+  { to: '/trips',     icon: Map,             label: 'Trips'   },
+  { to: '/assistant', icon: MessageSquare,   label: 'AI'      },
+  { to: '/profile',   icon: User,            label: 'Profile' },
 ];
 
 export function MobileNav({ className }: MobileNavProps) {
   return (
     <nav
+      aria-label="Mobile navigation"
       className={cn(
-        'fixed bottom-0 left-0 right-0 z-10 border-t bg-card pb-safe',
+        'fixed bottom-0 left-0 right-0 z-10 border-t bg-card/95 pb-safe backdrop-blur-sm',
         className,
       )}
     >
@@ -28,13 +29,20 @@ export function MobileNav({ className }: MobileNavProps) {
             to={to}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors',
+                'relative flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-colors',
                 isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )
             }
           >
-            <Icon className="h-5 w-5" />
-            {label}
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <span aria-hidden="true" className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary" />
+                )}
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                {label}
+              </>
+            )}
           </NavLink>
         ))}
       </div>

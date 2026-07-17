@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Sun,
   CloudSun,
@@ -15,10 +15,50 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { WeatherData } from '../types';
 
-type State =
-  | { status: 'idle' | 'locating' | 'fetching' }
-  | { status: 'ready'; data: WeatherData }
-  | { status: 'error'; message: string };
+async function fetchWeather(signal: AbortSignal): Promise<WeatherData> {
+  const coords = await new Promise<GeolocationCoordinates>((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('Location not supported by this browser'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve(pos.coords),
+      () => reject(new Error('Location access denied')),
+      { timeout: 8000, maximumAge: 5 * 60 * 1000 },
+    );
+  });
+
+  const { latitude: lat, longitude: lon } = coords;
+
+  const [weather, geo] = await Promise.all([
+    fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`,
+      { signal },
+    ).then((r) => r.json()),
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+      { headers: { 'Accept-Language': 'en' }, signal },
+    ).then((r) => r.json()),
+  ]);
+
+  const cw = weather.current_weather as {
+    temperature: number;
+    windspeed: number;
+    weathercode: number;
+    is_day: number;
+  };
+  const address = geo.address as Record<string, string> | undefined;
+  const location =
+    address?.city ?? address?.town ?? address?.village ?? address?.county ?? 'Your location';
+
+  return {
+    temperature: Math.round(cw.temperature),
+    weathercode: cw.weathercode,
+    windspeed:   Math.round(cw.windspeed),
+    is_day:      cw.is_day,
+    location,
+  };
+}
 
 function weatherIcon(code: number, isDay: boolean): LucideIcon {
   if (code === 0) return isDay ? Sun : Cloud;
@@ -43,67 +83,16 @@ function weatherDesc(code: number): string {
 }
 
 export function WeatherWidget() {
-  const [state, setState] = useState<State>({ status: 'idle' });
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['weather'],
+    queryFn:  ({ signal }) => fetchWeather(signal),
+    staleTime: 10 * 60 * 1000,
+    gcTime:    30 * 60 * 1000,
+    retry: 0,
+  });
 
-  useEffect(() => {
-    if (!('geolocation' in navigator)) {
-      setState({ status: 'error', message: 'Location not supported by this browser' });
-      return;
-    }
-
-    setState({ status: 'locating' });
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const { latitude: lat, longitude: lon } = coords;
-        setState({ status: 'fetching' });
-
-        Promise.all([
-          fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`,
-          ).then((r) => r.json()),
-          fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
-            { headers: { 'Accept-Language': 'en' } },
-          ).then((r) => r.json()),
-        ])
-          .then(([weather, geo]) => {
-            const cw = weather.current_weather as {
-              temperature: number;
-              windspeed: number;
-              weathercode: number;
-              is_day: number;
-            };
-            const address = geo.address as Record<string, string> | undefined;
-            const location =
-              address?.city ??
-              address?.town ??
-              address?.village ??
-              address?.county ??
-              'Your location';
-
-            setState({
-              status: 'ready',
-              data: {
-                temperature: Math.round(cw.temperature),
-                weathercode: cw.weathercode,
-                windspeed: Math.round(cw.windspeed),
-                is_day: cw.is_day,
-                location,
-              },
-            });
-          })
-          .catch(() => setState({ status: 'error', message: 'Failed to load weather' }));
-      },
-      () => setState({ status: 'error', message: 'Location access denied' }),
-      { timeout: 8000, maximumAge: 5 * 60 * 1000 },
-    );
-  }, []);
-
-  const isLoading =
-    state.status === 'idle' ||
-    state.status === 'locating' ||
-    state.status === 'fetching';
+  const errorMessage =
+    error instanceof Error ? error.message : 'Failed to load weather';
 
   return (
     <Card>
@@ -119,35 +108,35 @@ export function WeatherWidget() {
           </div>
         )}
 
-        {state.status === 'error' && (
+        {isError && (
           <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
-            <span>{state.message}</span>
+            <span>{errorMessage}</span>
             <span className="text-xs">Enable location access to see local weather.</span>
           </div>
         )}
 
-        {state.status === 'ready' && (() => {
-          const Icon = weatherIcon(state.data.weathercode, !!state.data.is_day);
+        {data && (() => {
+          const Icon = weatherIcon(data.weathercode, !!data.is_day);
           return (
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <div className="flex items-end gap-1">
                   <span className="text-4xl font-bold tabular-nums">
-                    {state.data.temperature}°
+                    {data.temperature}°
                   </span>
                   <span className="mb-1 text-sm text-muted-foreground">C</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {weatherDesc(state.data.weathercode)}
+                  {weatherDesc(data.weathercode)}
                 </p>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{state.data.location}</span>
+                  <span className="truncate">{data.location}</span>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Wind className="h-3 w-3 shrink-0" />
-                  <span>{state.data.windspeed} km/h</span>
+                  <span>{data.windspeed} km/h</span>
                 </div>
               </div>
               <div className="text-primary">

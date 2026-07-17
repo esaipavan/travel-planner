@@ -37,6 +37,7 @@ function InlineSuggestions({
       {chips.map(({ label, prompt }) => (
         <button
           key={label}
+          type="button"
           onClick={() => onSelect(prompt)}
           className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         >
@@ -62,9 +63,10 @@ export default function AssistantPage() {
 
   const { messages, isPending, send, clearChat, trip, tripContext } = useAssistant(tripId);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom on new messages, respecting reduced-motion preference
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    messagesEndRef.current?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth' });
   }, [messages, isPending]);
 
   const handleSend = useCallback(async () => {
@@ -141,7 +143,7 @@ export default function AssistantPage() {
 
       {/* Messages area */}
       <div className="flex flex-1 flex-col overflow-hidden rounded-xl border bg-card">
-        <div className="flex-1 overflow-y-auto p-4">
+        <div role="log" aria-label="Conversation" aria-live="polite" className="flex-1 overflow-y-auto p-4">
           {isEmpty && !isPending ? (
             /* Empty state */
             <div className="flex h-full flex-col items-center justify-center gap-6 py-8">
@@ -178,6 +180,7 @@ export default function AssistantPage() {
           <div className="flex gap-2">
             <Textarea
               ref={textareaRef}
+              aria-label="Message"
               placeholder="Ask me about destinations, itineraries, budgets, packing…"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -190,9 +193,10 @@ export default function AssistantPage() {
               onClick={() => void handleSend()}
               disabled={!input.trim() || isPending}
               size="icon"
+              aria-label="Send message"
               className="h-10 w-10 shrink-0 self-end"
             >
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
           <p className="mt-1.5 text-center text-xs text-muted-foreground">

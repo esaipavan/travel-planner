@@ -8,7 +8,6 @@ import { useReminders } from '@/features/reminders/hooks/useReminders';
 import {
   REMINDER_TYPE_MAP,
   PRIORITY_CONFIG,
-  STATUS_CONFIG,
   getEffectiveStatus,
 } from '@/features/reminders/types';
 
@@ -81,7 +80,6 @@ export function UpcomingReminders() {
               const meta   = REMINDER_TYPE_MAP[r.type] ?? REMINDER_TYPE_MAP['custom'];
               const status = getEffectiveStatus(r);
               const priCfg = PRIORITY_CONFIG[r.priority];
-              const stCfg  = STATUS_CONFIG[status];
 
               let dateLabel = '';
               try {
@@ -113,14 +111,11 @@ export function UpcomingReminders() {
                     </p>
                   </div>
 
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${priCfg.badgeClass}`}>
+                  {r.priority !== 'low' && (
+                    <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${priCfg.badgeClass}`}>
                       {priCfg.label}
                     </span>
-                    <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${stCfg.badgeClass}`}>
-                      {stCfg.label}
-                    </span>
-                  </div>
+                  )}
                 </div>
               );
             })}

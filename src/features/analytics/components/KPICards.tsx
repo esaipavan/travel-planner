@@ -80,24 +80,26 @@ export const KPICards = memo(function KPICards({ data, currency }: Props) {
         return (
           <div
             key={label}
-            className={`flex items-center gap-3 rounded-xl border p-4 ${
+            className={`flex items-center justify-between rounded-xl border p-5 ${
               isHighlighted ? 'border-destructive/40 bg-destructive/5' : 'bg-card'
             }`}
           >
-            <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                isHighlighted ? 'bg-destructive/10' : 'bg-primary/10'
-              }`}
-            >
-              <Icon className={`h-5 w-5 ${isHighlighted ? 'text-destructive' : 'text-primary'}`} />
-            </div>
-            <div className="min-w-0">
-              <p className={`text-xl font-bold leading-none tabular-nums truncate ${
+            <div className="space-y-1 min-w-0">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground truncate">
+                {label}
+              </p>
+              <p className={`text-2xl font-bold leading-none tabular-nums truncate ${
                 isHighlighted ? 'text-destructive' : ''
               }`}>
                 {getValue(data, currency)}
               </p>
-              <p className="mt-0.5 text-xs text-muted-foreground truncate">{label}</p>
+            </div>
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                isHighlighted ? 'bg-destructive/10' : 'bg-primary/10'
+              }`}
+            >
+              <Icon className={`h-5 w-5 ${isHighlighted ? 'text-destructive' : 'text-primary'}`} />
             </div>
           </div>
         );

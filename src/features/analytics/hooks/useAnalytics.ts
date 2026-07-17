@@ -142,9 +142,9 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
       const d = subMonths(now, 11 - i);
       return { key: format(d, 'yyyy-MM'), label: format(d, 'MMM yy'), amount: 0 };
     });
+    const monthMap = new Map(months.map((m) => [m.key, m]));
     for (const e of filteredExpenses) {
-      const key   = e.date.slice(0, 7);
-      const entry = months.find((m) => m.key === key);
+      const entry = monthMap.get(e.date.slice(0, 7));
       if (entry) entry.amount += e.amount;
     }
     return months.map(({ label, amount }) => ({ month: label, amount: Math.round(amount) }));
@@ -188,9 +188,9 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
       const d = subMonths(now, 11 - i);
       return { key: format(d, 'yyyy-MM'), label: format(d, 'MMM yy'), count: 0 };
     });
+    const monthMap = new Map(months.map((m) => [m.key, m]));
     for (const t of filteredTrips) {
-      const key   = t.start_date.slice(0, 7);
-      const entry = months.find((m) => m.key === key);
+      const entry = monthMap.get(t.start_date.slice(0, 7));
       if (entry) entry.count += 1;
     }
     return months.map(({ label, count }) => ({ month: label, count }));

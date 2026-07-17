@@ -40,7 +40,7 @@ export function Header() {
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b bg-card px-4 lg:px-6">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-4 lg:px-6">
       <div className="flex items-center gap-2">
         {/* Placeholder for breadcrumb or page title — filled per-page */}
       </div>
@@ -56,7 +56,7 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-9 w-9 rounded-full" aria-label="User menu">
               <Avatar className="h-9 w-9">
-                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarImage src={avatarUrl} alt={displayName ?? 'User avatar'} />
                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                   {displayName ? initials(displayName) : 'U'}
                 </AvatarFallback>
