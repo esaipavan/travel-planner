@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { queryClient } from '@/lib/queryClient';
 import { AuthInitializer } from '@/components/providers/AuthInitializer';
+import { ThemeInitializer } from '@/components/providers/ThemeInitializer';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthInitializer />
+        <ThemeInitializer />
         {children}
         <Toaster richColors position="top-right" />
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}

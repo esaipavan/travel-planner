@@ -15,6 +15,23 @@ export type Database = {
           notifications_enabled: boolean;
           created_at: string;
           updated_at: string;
+          username: string | null;
+          phone_number: string | null;
+          date_of_birth: string | null;
+          gender: string | null;
+          country: string | null;
+          city: string | null;
+          bio: string | null;
+          time_zone: string;
+          date_format: string;
+          distance_unit: string;
+          temperature_unit: string;
+          theme: string;
+          trip_reminders_enabled: boolean;
+          document_reminders_enabled: boolean;
+          ai_suggestions_enabled: boolean;
+          browser_notifications_enabled: boolean;
+          email_notifications_enabled: boolean;
         };
         Insert: {
           id: string;
@@ -27,6 +44,23 @@ export type Database = {
           notifications_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
+          username?: string | null;
+          phone_number?: string | null;
+          date_of_birth?: string | null;
+          gender?: string | null;
+          country?: string | null;
+          city?: string | null;
+          bio?: string | null;
+          time_zone?: string;
+          date_format?: string;
+          distance_unit?: string;
+          temperature_unit?: string;
+          theme?: string;
+          trip_reminders_enabled?: boolean;
+          document_reminders_enabled?: boolean;
+          ai_suggestions_enabled?: boolean;
+          browser_notifications_enabled?: boolean;
+          email_notifications_enabled?: boolean;
         };
         Update: {
           id?: string;
@@ -38,6 +72,23 @@ export type Database = {
           user_role?: Database['public']['Enums']['user_role_enum'];
           notifications_enabled?: boolean;
           updated_at?: string;
+          username?: string | null;
+          phone_number?: string | null;
+          date_of_birth?: string | null;
+          gender?: string | null;
+          country?: string | null;
+          city?: string | null;
+          bio?: string | null;
+          time_zone?: string;
+          date_format?: string;
+          distance_unit?: string;
+          temperature_unit?: string;
+          theme?: string;
+          trip_reminders_enabled?: boolean;
+          document_reminders_enabled?: boolean;
+          ai_suggestions_enabled?: boolean;
+          browser_notifications_enabled?: boolean;
+          email_notifications_enabled?: boolean;
         };
         Relationships: [];
       };
@@ -616,6 +667,10 @@ export type Database = {
       is_super_admin: {
         Args: Record<string, never>;
         Returns: boolean;
+      };
+      delete_own_account: {
+        Args: Record<string, never>;
+        Returns: void;
       };
     };
     Enums: {
