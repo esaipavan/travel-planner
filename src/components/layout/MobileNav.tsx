@@ -1,5 +1,19 @@
+import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, MessageSquare, User } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Map,
+  MessageSquare,
+  User,
+  MoreHorizontal,
+  Cloud,
+  DollarSign,
+  MapPin,
+  Compass,
+  FolderOpen,
+  Bell,
+  BarChart2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MobileNavProps {
@@ -13,7 +27,19 @@ const mobileItems = [
   { to: '/profile',   icon: User,            label: 'Profile' },
 ];
 
+const moreItems = [
+  { to: '/weather',     icon: Cloud,       label: 'Weather'     },
+  { to: '/currency',    icon: DollarSign,  label: 'Currency'    },
+  { to: '/nearby',      icon: MapPin,      label: 'Nearby'      },
+  { to: '/destination', icon: Compass,     label: 'Destination' },
+  { to: '/documents',   icon: FolderOpen,  label: 'Documents'   },
+  { to: '/reminders',   icon: Bell,        label: 'Reminders'   },
+  { to: '/analytics',   icon: BarChart2,   label: 'Analytics'   },
+];
+
 export function MobileNav({ className }: MobileNavProps) {
+  const [moreOpen, setMoreOpen] = useState(false);
+
   return (
     <nav
       aria-label="Mobile navigation"
@@ -22,7 +48,59 @@ export function MobileNav({ className }: MobileNavProps) {
         className,
       )}
     >
-      <div className="grid grid-cols-4">
+      {/* Backdrop — rendered inside nav so it inherits z-context; sits behind nav (z-9) */}
+      {moreOpen && (
+        <div
+          aria-hidden="true"
+          style={{ zIndex: 9 }}
+          className="fixed inset-0 bg-black/40"
+          onClick={() => setMoreOpen(false)}
+        />
+      )}
+
+      {/* More panel — slides up from above the nav bar */}
+      {moreOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="More navigation options"
+          className="absolute bottom-full left-0 right-0 rounded-t-xl border-t bg-card p-4 shadow-xl"
+        >
+          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
+            More
+          </p>
+          <div className="grid grid-cols-4 gap-1">
+            {moreItems.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setMoreOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    'flex flex-col items-center gap-1 rounded-lg p-2 text-[11px] font-medium transition-colors',
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      className={cn('h-5 w-5', isActive && 'text-primary')}
+                      aria-hidden="true"
+                    />
+                    {label}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom tab bar */}
+      <div className="grid grid-cols-5">
         {mobileItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -37,7 +115,10 @@ export function MobileNav({ className }: MobileNavProps) {
             {({ isActive }) => (
               <>
                 {isActive && (
-                  <span aria-hidden="true" className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary" />
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary"
+                  />
                 )}
                 <Icon className="h-5 w-5" aria-hidden="true" />
                 {label}
@@ -45,6 +126,28 @@ export function MobileNav({ className }: MobileNavProps) {
             )}
           </NavLink>
         ))}
+
+        {/* More button */}
+        <button
+          type="button"
+          onClick={() => setMoreOpen((o) => !o)}
+          aria-label="More navigation options"
+          aria-expanded={moreOpen}
+          aria-haspopup="dialog"
+          className={cn(
+            'relative flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition-colors',
+            moreOpen ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {moreOpen && (
+            <span
+              aria-hidden="true"
+              className="absolute left-1/2 top-0 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary"
+            />
+          )}
+          <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+          More
+        </button>
       </div>
     </nav>
   );

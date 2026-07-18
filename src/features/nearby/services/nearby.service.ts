@@ -3,7 +3,7 @@ import type { NearbyPlace, NearbyResult, PlaceCategory } from '../types';
 const NOMINATIM = 'https://nominatim.openstreetmap.org';
 const OVERPASS  = 'https://overpass-api.de/api/interpreter';
 const RADIUS_M  = 3000;
-const MAX_RESULTS = 100;
+const MAX_RESULTS = 300;
 
 async function geocode(query: string): Promise<{ lat: number; lon: number; displayName: string }> {
   const params = new URLSearchParams({ q: query, format: 'json', limit: '1' });

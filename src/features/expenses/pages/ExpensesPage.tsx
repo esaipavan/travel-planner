@@ -53,10 +53,11 @@ export default function ExpensesPage() {
   const [deleteTarget, setDeleteTarget]     = useState<ExpenseRow | null>(null);
   const [deleteOpen, setDeleteOpen]         = useState(false);
 
-  if (isLoading) return <ExpenseSkeleton />;
-  if (isError || !data) return <Navigate to="/trips" replace />;
-
-  const { expenses, tripTitle, tripCurrency, budgetMap } = data;
+  // Destructure with fallbacks before early returns — required by Rules of Hooks
+  const expenses     = data?.expenses     ?? [];
+  const tripTitle    = data?.tripTitle    ?? '';
+  const tripCurrency = data?.tripCurrency ?? 'INR';
+  const budgetMap    = data?.budgetMap    ?? {};
 
   const filtered = useMemo(() => {
     let result = expenses;
@@ -71,6 +72,9 @@ export default function ExpensesPage() {
     if (dateTo)   result = result.filter((e) => e.date <= dateTo);
     return sortExpenses(result, sort);
   }, [expenses, category, search, dateFrom, dateTo, sort]);
+
+  if (isLoading) return <ExpenseSkeleton />;
+  if (isError || !data) return <Navigate to="/trips" replace />;
 
   const hasActiveFilters = search !== '' || category !== 'all' || dateFrom !== '' || dateTo !== '';
 

@@ -156,8 +156,8 @@ export default function TripDetailPage() {
               />
             </Button>
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit
+              <Pencil className="h-4 w-4 sm:mr-2" aria-hidden="true" />
+              <span className="hidden sm:inline">Edit</span>
             </Button>
             <Button
               variant="outline"
@@ -165,8 +165,8 @@ export default function TripDetailPage() {
               className="text-destructive hover:text-destructive"
               onClick={() => setDeleteOpen(true)}
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              <Trash2 className="h-4 w-4 sm:mr-2" aria-hidden="true" />
+              <span className="hidden sm:inline">Delete</span>
             </Button>
           </div>
         </PageHeader>
