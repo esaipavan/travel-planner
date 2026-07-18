@@ -489,7 +489,7 @@ features/[feature]/
 ### 1 — Clone and install
 
 ```bash
-git clone https://github.com/your-username/travel-planner.git
+git clone https://github.com/esaipavan/travel-planner.git
 cd travel-planner
 npm install
 ```
@@ -602,7 +602,7 @@ npm run analyze      # Bundle analysis → dist/stats.html
 
 ### Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/travel-planner)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/esaipavan/travel-planner)
 
 **Set these in Vercel Dashboard → Settings → Environment Variables:**
 
