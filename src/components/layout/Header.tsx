@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, LogOut, User, Settings } from 'lucide-react';
+import { MobileDrawer } from './MobileDrawer';
 import { SyncIndicator } from '@/components/pwa/SyncIndicator';
 import { InstallButton } from '@/components/pwa/InstallButton';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ export function Header() {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-4 lg:px-6">
       <div className="flex items-center gap-2">
-        {/* Placeholder for breadcrumb or page title — filled per-page */}
+        <MobileDrawer />
       </div>
 
       <div className="flex items-center gap-2">

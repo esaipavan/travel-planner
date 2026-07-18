@@ -18,13 +18,13 @@ const mainNav = [
 ];
 
 const toolNav = [
-  { to: '/weather',     icon: Cloud,          label: 'Weather'         },
-  { to: '/currency',    icon: DollarSign,     label: 'Currency'        },
-  { to: '/nearby',      icon: MapPin,         label: 'Nearby Places'   },
-  { to: '/destination', icon: Globe,          label: 'Destination Guide'},
-  { to: '/documents',   icon: FileText,       label: 'Documents'       },
-  { to: '/reminders',   icon: Bell,           label: 'Reminders'       },
-  { to: '/assistant',   icon: MessageSquare,  label: 'AI Assistant'    },
+  { to: '/weather',     icon: Cloud,         label: 'Weather'          },
+  { to: '/currency',    icon: DollarSign,    label: 'Currency'         },
+  { to: '/nearby',      icon: MapPin,        label: 'Nearby Places'    },
+  { to: '/destination', icon: Globe,         label: 'Destination Guide'},
+  { to: '/documents',   icon: FileText,      label: 'Documents'        },
+  { to: '/reminders',   icon: Bell,          label: 'Reminders'        },
+  { to: '/assistant',   icon: MessageSquare, label: 'AI Assistant'     },
 ];
 
 const accountNav = [
@@ -35,9 +35,11 @@ const accountNav = [
 function NavSection({
   label,
   items,
+  onNavigate,
 }: {
   label: string;
   items: { to: string; icon: React.ElementType; label: string }[];
+  onNavigate?: () => void;
 }) {
   return (
     <div className="space-y-0.5">
@@ -48,6 +50,7 @@ function NavSection({
         <NavLink
           key={to}
           to={to}
+          onClick={onNavigate}
           className={({ isActive }) =>
             cn(
               'group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -65,12 +68,16 @@ function NavSection({
   );
 }
 
-export function Sidebar({ className }: SidebarProps) {
+/**
+ * Shared nav content used by both the desktop Sidebar and the mobile drawer.
+ * onNavigate is called after each link click — the drawer uses it to close itself.
+ */
+export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { isAdmin } = useAuthStore();
 
   return (
-    <aside aria-label="Main navigation" className={cn('flex w-60 shrink-0 flex-col border-r bg-card', className)}>
-      {/* Logo */}
+    <>
+      {/* Brand / logo row */}
       <div className="flex h-14 items-center gap-2.5 border-b px-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Plane className="h-3.5 w-3.5" aria-hidden="true" />
@@ -79,8 +86,8 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
 
       <ScrollArea className="flex-1 px-2">
-        <NavSection label="Overview" items={mainNav} />
-        <NavSection label="Tools"    items={toolNav} />
+        <NavSection label="Overview" items={mainNav} onNavigate={onNavigate} />
+        <NavSection label="Tools"    items={toolNav} onNavigate={onNavigate} />
 
         {isAdmin && (
           <div className="space-y-0.5">
@@ -89,6 +96,7 @@ export function Sidebar({ className }: SidebarProps) {
             </p>
             <NavLink
               to="/admin"
+              onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
                   'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
@@ -104,9 +112,20 @@ export function Sidebar({ className }: SidebarProps) {
           </div>
         )}
 
-        <NavSection label="Account" items={accountNav} />
+        <NavSection label="Account" items={accountNav} onNavigate={onNavigate} />
         <div className="pb-4" />
       </ScrollArea>
+    </>
+  );
+}
+
+export function Sidebar({ className }: SidebarProps) {
+  return (
+    <aside
+      aria-label="Main navigation"
+      className={cn('flex w-60 shrink-0 flex-col border-r bg-card', className)}
+    >
+      <SidebarContent />
     </aside>
   );
 }

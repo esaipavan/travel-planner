@@ -61,7 +61,7 @@ function buildQuery(lat: number, lon: number): string {
   const amenities = '"amenity"~"restaurant|cafe|fast_food|hospital|clinic|atm|bank|fuel|pharmacy"';
   const tourisms  = '"tourism"~"hotel|hostel|guest_house|attraction|museum|artwork|viewpoint"';
   return `
-[out:json][timeout:30];
+[out:json][timeout:60];
 (
   node[${amenities}]${around};
   node[${tourisms}]${around};
@@ -86,13 +86,10 @@ export async function fetchNearbyPlaces(destination: string): Promise<NearbyResu
   const geo = await geocode(destination);
 
   const query = buildQuery(geo.lat, geo.lon);
-  const body  = new URLSearchParams({ data: query });
 
-  const res = await fetch(OVERPASS, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body:    body.toString(),
-  });
+  // POST to overpass-api.de is rejected by the server (TCP reset / 406).
+  // GET with data= query param is the reliable method.
+  const res = await fetch(`${OVERPASS}?data=${encodeURIComponent(query)}`);
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
