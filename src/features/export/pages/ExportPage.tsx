@@ -11,10 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { useTrip } from '@/features/trips/hooks/useTrips';
 import { useBudget } from '@/features/budget/hooks/useBudget';
 import { useExpenseData } from '@/features/expenses/hooks/useExpenses';
+import { useItineraryData } from '@/features/itinerary/hooks/useItinerary';
+import { useChecklistData } from '@/features/checklist/hooks/useChecklist';
 import { formatDate, formatDateRange, formatCurrency } from '@/utils/formatters';
 import type { TripRow } from '@/features/trips/types';
 import type { BudgetData } from '@/features/budget/services/budget.service';
 import type { ExpenseData, ExpenseRow } from '@/features/expenses/types';
+import type { ItineraryData } from '@/features/itinerary/types';
+import type { ChecklistData } from '@/features/checklist/types';
 
 type ExportFormat = 'excel' | 'csv' | 'print';
 
@@ -30,7 +34,7 @@ const FORMAT_OPTIONS: FormatOption[] = [
   {
     value: 'excel',
     label: 'Excel Workbook',
-    description: 'Multi-sheet workbook with trip overview, budget summary, and full expense log',
+    description: 'Full workbook: overview, budget, expenses, itinerary, and packing list',
     icon: FileSpreadsheet,
     badge: 'Recommended',
   },
@@ -43,7 +47,7 @@ const FORMAT_OPTIONS: FormatOption[] = [
   {
     value: 'print',
     label: 'Print / PDF',
-    description: 'Opens a print-friendly summary — use your browser\'s "Save as PDF" option',
+    description: 'Opens a print-ready summary with all trip data — use "Save as PDF"',
     icon: Printer,
   },
 ];
@@ -81,20 +85,26 @@ function exportToCSV(expenses: ExpenseRow[], tripTitle: string): void {
   downloadBlob(blob, `${safeFilename(tripTitle)}-expenses.csv`);
 }
 
-function exportToExcel(trip: TripRow, budgetData: BudgetData, expenseData: ExpenseData): void {
+function exportToExcel(
+  trip: TripRow,
+  budgetData: BudgetData,
+  expenseData: ExpenseData,
+  itineraryData?: ItineraryData,
+  checklistData?: ChecklistData,
+): void {
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: Overview
   const overviewWs = XLSX.utils.aoa_to_sheet([
     ['TravelPlanner — Trip Export'],
     [],
-    ['Trip', trip.title],
-    ['Destination', trip.destination],
-    ['Dates', formatDateRange(trip.start_date, trip.end_date)],
-    ['Status', trip.status],
+    ['Trip',         trip.title],
+    ['Destination',  trip.destination],
+    ['Dates',        formatDateRange(trip.start_date, trip.end_date)],
+    ['Status',       trip.status],
     ['Total Budget', trip.total_budget ?? 'Not set'],
-    ['Currency', trip.currency],
-    ['Notes', trip.notes ?? ''],
+    ['Currency',     trip.currency],
+    ['Notes',        trip.notes ?? ''],
   ]);
   overviewWs['!cols'] = [{ wch: 16 }, { wch: 44 }];
   XLSX.utils.book_append_sheet(wb, overviewWs, 'Overview');
@@ -123,9 +133,7 @@ function exportToExcel(trip: TripRow, budgetData: BudgetData, expenseData: Expen
       trip.currency,
     ],
   ]);
-  budgetWs['!cols'] = [
-    { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 },
-  ];
+  budgetWs['!cols'] = [{ wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, budgetWs, 'Budget');
 
   // Sheet 3: Expense log
@@ -146,12 +154,64 @@ function exportToExcel(trip: TripRow, budgetData: BudgetData, expenseData: Expen
   ];
   XLSX.utils.book_append_sheet(wb, expenseWs, 'Expenses');
 
+  // Sheet 4: Itinerary (if data available and has items)
+  const itineraryItems = (itineraryData?.days ?? []).flatMap((day) =>
+    day.items.map((item) => [
+      `Day ${day.day_number}`,
+      day.date,
+      item.start_time ?? '',
+      item.end_time ?? '',
+      item.title,
+      item.category,
+      item.location_name ?? '',
+      item.status,
+      item.estimated_cost != null ? item.estimated_cost : '',
+      item.description ?? '',
+    ]),
+  );
+  if (itineraryItems.length > 0) {
+    const itineraryWs = XLSX.utils.aoa_to_sheet([
+      ['Day', 'Date', 'Start', 'End', 'Activity', 'Category', 'Location', 'Status', 'Est. Cost', 'Notes'],
+      ...itineraryItems,
+    ]);
+    itineraryWs['!cols'] = [
+      { wch: 8 }, { wch: 12 }, { wch: 8 }, { wch: 8 },
+      { wch: 30 }, { wch: 14 }, { wch: 22 }, { wch: 12 }, { wch: 12 }, { wch: 36 },
+    ];
+    XLSX.utils.book_append_sheet(wb, itineraryWs, 'Itinerary');
+  }
+
+  // Sheet 5: Packing List (if data available)
+  if (checklistData && checklistData.items.length > 0) {
+    const packingWs = XLSX.utils.aoa_to_sheet([
+      ['Category', 'Item', 'Quantity', 'Essential', 'Status'],
+      ...checklistData.items.map((item) => [
+        item.category,
+        item.name,
+        item.quantity,
+        item.is_essential ? 'Yes' : 'No',
+        item.is_packed ? '✓ Packed' : 'Pending',
+      ]),
+    ]);
+    packingWs['!cols'] = [{ wch: 14 }, { wch: 28 }, { wch: 10 }, { wch: 10 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(wb, packingWs, 'Packing List');
+  }
+
   XLSX.writeFile(wb, `${safeFilename(trip.title)}-export.xlsx`);
 }
 
-function openPrintView(trip: TripRow, budgetData: BudgetData, expenseData: ExpenseData): void {
-  const fmt = (n: number) => formatCurrency(n, trip.currency);
+function openPrintView(
+  trip: TripRow,
+  budgetData: BudgetData,
+  expenseData: ExpenseData,
+  itineraryData?: ItineraryData,
+  checklistData?: ChecklistData,
+): void {
+  const fmt         = (n: number) => formatCurrency(n, trip.currency);
   const activeItems = budgetData.items.filter((i) => i.allocated > 0 || i.spent > 0);
+  const itineraryItems = (itineraryData?.days ?? []).flatMap((d) =>
+    d.items.map((item) => ({ day: d.day_number, date: d.date, item })),
+  );
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -160,10 +220,10 @@ function openPrintView(trip: TripRow, budgetData: BudgetData, expenseData: Expen
   <title>${trip.title} — TravelPlanner Export</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; color: #111; padding: 32px; line-height: 1.5; }
+    body { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; color: #111; padding: 32px; line-height: 1.5; max-width: 960px; margin: 0 auto; }
     h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-    h2 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #555; margin: 24px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
-    .meta { color: #555; font-size: 13px; margin-bottom: 8px; }
+    h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #555; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; }
+    .meta { color: #555; font-size: 13px; margin-bottom: 6px; }
     .badge { display: inline-block; background: #f3f4f6; border-radius: 4px; padding: 2px 8px; font-size: 11px; text-transform: capitalize; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
     th { text-align: left; padding: 7px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; background: #f9fafb; border-bottom: 2px solid #e5e7eb; color: #555; }
@@ -173,6 +233,9 @@ function openPrintView(trip: TripRow, budgetData: BudgetData, expenseData: Expen
     .total-row td { font-weight: 700; border-top: 2px solid #e5e7eb; border-bottom: none; }
     .over { color: #dc2626; }
     .good { color: #16a34a; }
+    .packed { color: #16a34a; }
+    .pending { color: #9ca3af; }
+    .essential { font-weight: 600; }
     .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 11px; }
     @media print { body { padding: 20px; } @page { margin: 20mm; } }
   </style>
@@ -226,7 +289,47 @@ function openPrintView(trip: TripRow, budgetData: BudgetData, expenseData: Expen
       )
       .join('')}
   </table>`
-      : '<p style="color:#9ca3af;margin-top:16px;">No expenses recorded.</p>'
+      : ''
+  }
+
+  ${
+    itineraryItems.length > 0
+      ? `<h2>Itinerary <span style="font-weight:400;color:#9ca3af;">(${itineraryItems.length} activities)</span></h2>
+  <table>
+    <tr><th>Day</th><th>Date</th><th>Time</th><th>Activity</th><th>Location</th><th>Status</th></tr>
+    ${itineraryItems
+      .map(
+        ({ day, date, item }) => `<tr>
+      <td style="white-space:nowrap;font-weight:600;">Day ${day}</td>
+      <td style="white-space:nowrap;">${date}</td>
+      <td style="white-space:nowrap;">${item.start_time ?? ''}${item.start_time && item.end_time ? '–' : ''}${item.end_time ?? ''}</td>
+      <td><strong>${item.title}</strong>${item.description ? `<br><span style="color:#555;font-size:11px;">${item.description}</span>` : ''}</td>
+      <td>${item.location_name ?? ''}</td>
+      <td style="text-transform:capitalize;">${item.status}</td>
+    </tr>`,
+      )
+      .join('')}
+  </table>`
+      : ''
+  }
+
+  ${
+    checklistData && checklistData.items.length > 0
+      ? `<h2>Packing List <span style="font-weight:400;color:#9ca3af;">(${checklistData.items.filter((i) => i.is_packed).length}/${checklistData.items.length} packed)</span></h2>
+  <table>
+    <tr><th>Category</th><th>Item</th><th>Qty</th><th>Status</th></tr>
+    ${checklistData.items
+      .map(
+        (item) => `<tr>
+      <td>${item.category}</td>
+      <td class="${item.is_essential ? 'essential' : ''}">${item.name}${item.is_essential ? ' ★' : ''}</td>
+      <td>${item.quantity}</td>
+      <td class="${item.is_packed ? 'packed' : 'pending'}">${item.is_packed ? '✓ Packed' : 'Pending'}</td>
+    </tr>`,
+      )
+      .join('')}
+  </table>`
+      : ''
   }
 
   <div class="footer">Exported from TravelPlanner &nbsp;·&nbsp; ${formatDate(new Date().toISOString().slice(0, 10))}</div>
@@ -235,7 +338,7 @@ function openPrintView(trip: TripRow, budgetData: BudgetData, expenseData: Expen
 </html>`;
 
   const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
+  const url  = URL.createObjectURL(blob);
   window.open(url, '_blank');
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
@@ -247,7 +350,7 @@ function ExportSkeleton() {
       <div className="grid gap-3 sm:grid-cols-3">
         {[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-lg" />)}
       </div>
-      <Skeleton className="h-32 rounded-lg" />
+      <Skeleton className="h-40 rounded-lg" />
       <Skeleton className="h-10 w-36" />
     </div>
   );
@@ -255,16 +358,27 @@ function ExportSkeleton() {
 
 export default function ExportPage() {
   const { id: tripId } = useParams<{ id: string }>();
-  const { data: trip, isLoading: tripLoading, isError: tripError } = useTrip(tripId!);
-  const { data: budgetData, isLoading: budgetLoading } = useBudget(tripId!);
-  const { data: expenseData, isLoading: expenseLoading } = useExpenseData(tripId!);
-  const [format, setFormat] = useState<ExportFormat>('excel');
+  const { data: trip,          isLoading: tripLoading,       isError: tripError  } = useTrip(tripId!);
+  const { data: budgetData,    isLoading: budgetLoading                           } = useBudget(tripId!);
+  const { data: expenseData,   isLoading: expenseLoading                          } = useExpenseData(tripId!);
+  const { data: itineraryData, isLoading: itineraryLoading                        } = useItineraryData(tripId!);
+  const { data: checklistData, isLoading: checklistLoading                        } = useChecklistData(tripId!);
+
+  const [format,      setFormat]      = useState<ExportFormat>('excel');
   const [isExporting, setIsExporting] = useState(false);
 
-  const isLoading = tripLoading || budgetLoading || expenseLoading;
+  const isLoading = tripLoading || budgetLoading || expenseLoading || itineraryLoading || checklistLoading;
 
   if (isLoading) return <ExportSkeleton />;
   if (tripError || !trip || !budgetData || !expenseData) return <Navigate to="/trips" replace />;
+
+  const expenseCount      = expenseData.expenses.length;
+  const activeCategories  = budgetData.items.filter((i) => i.allocated > 0 || i.spent > 0).length;
+  const itineraryCount    = (itineraryData?.days ?? []).reduce((s, d) => s + d.items.length, 0);
+  const checklistCount    = checklistData?.items.length ?? 0;
+  const packedCount       = checklistData?.items.filter((i) => i.is_packed).length ?? 0;
+
+  const sheetCount = 3 + (itineraryCount > 0 ? 1 : 0) + (checklistCount > 0 ? 1 : 0);
 
   async function handleExport() {
     if (!trip || !budgetData || !expenseData) return;
@@ -274,10 +388,10 @@ export default function ExportPage() {
         exportToCSV(expenseData.expenses, trip.title);
         toast.success('CSV downloaded');
       } else if (format === 'excel') {
-        exportToExcel(trip, budgetData, expenseData);
+        exportToExcel(trip, budgetData, expenseData, itineraryData, checklistData);
         toast.success('Excel workbook downloaded');
       } else {
-        openPrintView(trip, budgetData, expenseData);
+        openPrintView(trip, budgetData, expenseData, itineraryData, checklistData);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Export failed');
@@ -285,9 +399,6 @@ export default function ExportPage() {
       setIsExporting(false);
     }
   }
-
-  const expenseCount = expenseData.expenses.length;
-  const activeCategories = budgetData.items.filter((i) => i.allocated > 0 || i.spent > 0).length;
 
   return (
     <div className="space-y-6">
@@ -343,7 +454,7 @@ export default function ExportPage() {
       <Card>
         <CardContent className="p-5 space-y-3">
           <p className="text-sm font-semibold">What's included</p>
-          <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
+          <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2 lg:grid-cols-3">
             <div className="flex items-start gap-2">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
               <span>Trip overview &amp; details</span>
@@ -353,9 +464,7 @@ export default function ExportPage() {
               <span>
                 Budget breakdown
                 {activeCategories > 0 && (
-                  <span className="ml-1 text-foreground font-medium">
-                    ({activeCategories} categories)
-                  </span>
+                  <span className="ml-1 text-foreground font-medium">({activeCategories} categories)</span>
                 )}
               </span>
             </div>
@@ -364,26 +473,49 @@ export default function ExportPage() {
               <span>
                 Expense log
                 {expenseCount > 0 && (
-                  <span className="ml-1 text-foreground font-medium">
-                    ({expenseCount} transactions)
-                  </span>
+                  <span className="ml-1 text-foreground font-medium">({expenseCount} transactions)</span>
                 )}
               </span>
             </div>
+            {format !== 'csv' && (
+              <>
+                <div className="flex items-start gap-2">
+                  <Check className={`mt-0.5 h-4 w-4 shrink-0 ${itineraryCount > 0 ? 'text-emerald-500' : 'text-muted-foreground/40'}`} />
+                  <span className={itineraryCount === 0 ? 'text-muted-foreground/50' : ''}>
+                    Itinerary
+                    {itineraryCount > 0
+                      ? <span className="ml-1 text-foreground font-medium">({itineraryCount} activities)</span>
+                      : <span className="ml-1 text-muted-foreground/50">(none added)</span>}
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Check className={`mt-0.5 h-4 w-4 shrink-0 ${checklistCount > 0 ? 'text-emerald-500' : 'text-muted-foreground/40'}`} />
+                  <span className={checklistCount === 0 ? 'text-muted-foreground/50' : ''}>
+                    Packing list
+                    {checklistCount > 0
+                      ? <span className="ml-1 text-foreground font-medium">({packedCount}/{checklistCount} packed)</span>
+                      : <span className="ml-1 text-muted-foreground/50">(none added)</span>}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
+
           {format === 'excel' && (
             <p className="text-xs text-muted-foreground border-t pt-3">
-              Excel file contains 3 sheets: Overview, Budget, and Expenses.
+              Excel file contains {sheetCount} sheets: Overview, Budget, Expenses
+              {itineraryCount > 0 && ', Itinerary'}
+              {checklistCount > 0 && ', Packing List'}.
             </p>
           )}
           {format === 'csv' && (
             <p className="text-xs text-muted-foreground border-t pt-3">
-              CSV contains the expense log only. Use Excel export for the full budget summary.
+              CSV contains the expense log only. Use Excel export for the full budget, itinerary, and packing list.
             </p>
           )}
           {format === 'print' && (
             <p className="text-xs text-muted-foreground border-t pt-3">
-              A new tab will open with the print view. Use <strong>Ctrl+P</strong> (or ⌘+P) and choose "Save as PDF".
+              A new tab opens with the full print view. Press <strong>Ctrl+P</strong> (or ⌘+P) and choose "Save as PDF".
             </p>
           )}
         </CardContent>
