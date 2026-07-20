@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Search, MapPin, MapPinOff, RefreshCw, X } from 'lucide-react';
+import { Search, MapPin, MapPinOff, RefreshCw, X, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,7 @@ export default function NearbyPage() {
 
   const qc = useQueryClient();
 
-  const { data, isLoading, isError, error, isFetching } = useNearbyPlaces(destination);
+  const { data, isLoading, isError, isFetching } = useNearbyPlaces(destination);
 
   function handleSearch() {
     const q = input.trim();
@@ -97,7 +97,11 @@ export default function NearbyPage() {
           />
         </div>
         <Button onClick={handleSearch} disabled={!input.trim() || isFetching}>
-          <Search className="mr-2 h-4 w-4" />
+          {isFetching ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="mr-2 h-4 w-4" />
+          )}
           Search
         </Button>
         {destination && (
@@ -136,7 +140,7 @@ export default function NearbyPage() {
           <div className="space-y-1">
             <p className="font-medium">Could not load nearby places</p>
             <p className="text-sm text-muted-foreground">
-              {error instanceof Error ? error.message : 'An error occurred.'}
+              Check the destination name and try again.
             </p>
           </div>
           <Button size="sm" variant="outline" onClick={handleRefresh}>

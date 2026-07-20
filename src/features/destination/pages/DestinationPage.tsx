@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Globe, RefreshCw } from 'lucide-react';
+import { Search, Globe, RefreshCw, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,7 +37,7 @@ export default function DestinationPage() {
 
   const qc = useQueryClient();
 
-  const { data, isLoading, isError, error, isFetching } = useDestination(query);
+  const { data, isLoading, isError, isFetching } = useDestination(query);
 
   function handleSearch(value?: string) {
     const q = (value ?? input).trim();
@@ -89,7 +89,11 @@ export default function DestinationPage() {
           />
         </div>
         <Button onClick={() => handleSearch()} disabled={!input.trim() || isFetching}>
-          <Search className="mr-2 h-4 w-4" />
+          {isFetching ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="mr-2 h-4 w-4" />
+          )}
           Search
         </Button>
         {query && (
@@ -135,7 +139,7 @@ export default function DestinationPage() {
           <div className="space-y-1">
             <p className="font-medium">No results found</p>
             <p className="text-sm text-muted-foreground">
-              {error instanceof Error ? error.message : 'Could not load destination data.'}
+              Try a different city, country, or region name.
             </p>
           </div>
           <Button size="sm" variant="outline" onClick={handleRefresh}>

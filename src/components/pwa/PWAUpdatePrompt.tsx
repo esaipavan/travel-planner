@@ -1,19 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { toast } from 'sonner';
 
 export function PWAUpdatePrompt() {
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | undefined>();
+
   const {
     needRefresh:         [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(_swUrl, registration) {
-      if (registration) {
-        // Check for updates every 60 minutes
-        setInterval(() => void registration.update(), 60 * 60 * 1_000);
-      }
+    onRegisteredSW(_swUrl, reg) {
+      setRegistration(reg);
     },
   });
+
+  useEffect(() => {
+    if (!registration) return;
+    const id = setInterval(() => void registration.update(), 60 * 60 * 1_000);
+    return () => clearInterval(id);
+  }, [registration]);
 
   useEffect(() => {
     if (needRefresh) {

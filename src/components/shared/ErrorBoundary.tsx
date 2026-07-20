@@ -22,7 +22,9 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: { componentStack: string }) {
-    console.error('ErrorBoundary caught:', error, info);
+    if (import.meta.env.DEV) {
+      console.error('ErrorBoundary caught:', error, info);
+    }
   }
 
   handleReset = () => {
@@ -39,7 +41,9 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Something went wrong</h2>
             <p className="text-sm text-muted-foreground">
-              {this.state.error?.message ?? 'An unexpected error occurred.'}
+              {import.meta.env.DEV
+                ? (this.state.error?.message ?? 'An unexpected error occurred.')
+                : 'An unexpected error occurred. Please try again.'}
             </p>
           </div>
           <div className="flex gap-2">

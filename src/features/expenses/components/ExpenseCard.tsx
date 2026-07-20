@@ -82,6 +82,7 @@ export function ExpenseCard({ expense, budgetAllocated, onEdit, onDelete }: Prop
               variant="ghost"
               className="h-7 w-7"
               onClick={handleViewReceipt}
+              aria-label="View receipt"
               title="View receipt"
             >
               <ExternalLink className="h-3.5 w-3.5" />
@@ -92,6 +93,7 @@ export function ExpenseCard({ expense, budgetAllocated, onEdit, onDelete }: Prop
             variant="ghost"
             className="h-7 w-7"
             onClick={() => onEdit(expense)}
+            aria-label={`Edit expense: ${expense.title}`}
             title="Edit expense"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -101,6 +103,7 @@ export function ExpenseCard({ expense, budgetAllocated, onEdit, onDelete }: Prop
             variant="ghost"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
             onClick={() => onDelete(expense)}
+            aria-label={`Delete expense: ${expense.title}`}
             title="Delete expense"
           >
             <Trash2 className="h-3.5 w-3.5" />

@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
-import { Search, RefreshCw, MapPin, CloudOff } from 'lucide-react';
+import { Search, RefreshCw, MapPin, CloudOff, Loader2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { formatTimeAgo } from '@/utils/formatters';
 import { useWeather } from '../hooks/useWeather';
 import { CurrentWeatherCard } from '../components/CurrentWeatherCard';
 import { ForecastRow } from '../components/ForecastRow';
@@ -28,7 +29,7 @@ export default function WeatherPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
 
-  const { data, isLoading, isError, error, isFetching } = useWeather(destination);
+  const { data, isLoading, isError, isFetching, dataUpdatedAt } = useWeather(destination);
 
   function handleSearch() {
     const q = input.trim();
@@ -71,7 +72,11 @@ export default function WeatherPage() {
           />
         </div>
         <Button onClick={handleSearch} disabled={!input.trim() || isFetching}>
-          <Search className="mr-2 h-4 w-4" />
+          {isFetching ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="mr-2 h-4 w-4" />
+          )}
           Search
         </Button>
         {destination && (
@@ -108,7 +113,7 @@ export default function WeatherPage() {
           <div className="space-y-1">
             <p className="font-medium">Could not load weather</p>
             <p className="text-sm text-muted-foreground">
-              {error instanceof Error ? error.message : 'An error occurred.'}
+              Check the city name and try again.
             </p>
           </div>
           <Button size="sm" variant="outline" onClick={handleRefresh}>
@@ -119,10 +124,17 @@ export default function WeatherPage() {
 
       {data && !isError && (
         <div className="space-y-4">
-          {/* Location label */}
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{data.location.displayName}</span>
+          {/* Location label + last updated */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
+              <MapPin className="h-3.5 w-3.5 shrink-0" />
+              <span className="truncate">{data.location.displayName}</span>
+            </div>
+            {dataUpdatedAt > 0 && (
+              <span className="text-xs text-muted-foreground shrink-0">
+                Updated {formatTimeAgo(new Date(dataUpdatedAt))}
+              </span>
+            )}
           </div>
 
           {/* Current conditions */}

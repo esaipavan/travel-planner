@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeftRight, RefreshCw, TrendingUp } from 'lucide-react';
+import { ArrowLeftRight, RefreshCw, TrendingUp, Clock } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { formatDate, formatTimeAgo } from '@/utils/formatters';
 import { useCurrencies, useExchangeRate } from '../hooks/useCurrency';
 import { CurrencySelect } from '../components/CurrencySelect';
 
@@ -35,11 +36,11 @@ export default function CurrencyPage() {
 
   const { data: currencies, isLoading: loadingCurrencies } = useCurrencies();
   const {
-    data:      rateData,
-    isLoading: loadingRate,
-    isError:   rateError,
-    error:     rateErrorObj,
+    data:        rateData,
+    isLoading:   loadingRate,
+    isError:     rateError,
     isFetching,
+    dataUpdatedAt,
   } = useExchangeRate(from, to);
 
   function swap() {
@@ -144,9 +145,7 @@ export default function CurrencyPage() {
           ) : rateError ? (
             <div className="space-y-1">
               <p className="text-sm font-medium text-destructive">
-                {rateErrorObj instanceof Error
-                  ? rateErrorObj.message
-                  : 'Could not load exchange rate.'}
+                Couldn't load the exchange rate. Please try again.
               </p>
               <Button size="sm" variant="outline" onClick={refresh}>
                 Try again
@@ -186,9 +185,15 @@ export default function CurrencyPage() {
                 </span>
               </div>
 
-              <p className="text-xs text-muted-foreground">
-                Rate as of {rateData.updatedAt}
-              </p>
+              <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                <span>Rate as of {formatDate(rateData.updatedAt)}</span>
+                {dataUpdatedAt > 0 && (
+                  <span className="flex items-center gap-1 shrink-0">
+                    <Clock className="h-3 w-3" />
+                    {formatTimeAgo(new Date(dataUpdatedAt))}
+                  </span>
+                )}
+              </div>
             </>
           ) : null}
         </div>

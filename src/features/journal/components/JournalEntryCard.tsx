@@ -84,7 +84,8 @@ export function JournalEntryCard({
           </div>
           <button
             onClick={() => onToggleFavourite(entry)}
-            className="mt-0.5 shrink-0 transition-colors"
+            className="mt-0.5 shrink-0 rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={entry.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
             title={entry.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
           >
             <Heart
@@ -135,6 +136,7 @@ export function JournalEntryCard({
             size="icon"
             className="h-8 w-8"
             onClick={() => onEdit(entry)}
+            aria-label={`Edit journal entry: ${entry.title ?? 'Untitled'}`}
             title="Edit"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -144,6 +146,7 @@ export function JournalEntryCard({
             size="icon"
             className="h-8 w-8 text-destructive hover:text-destructive"
             onClick={() => onDelete(entry)}
+            aria-label={`Delete journal entry: ${entry.title ?? 'Untitled'}`}
             title="Delete"
           >
             <Trash2 className="h-3.5 w-3.5" />

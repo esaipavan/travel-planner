@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, ArrowRight, Plane } from 'lucide-react';
 import { differenceInDays, parseISO, isToday, isTomorrow } from 'date-fns';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ function daysUntilLabel(dateStr: string): string {
 
 export function UpcomingTrips() {
   const { data: trips, isLoading } = useUpcomingTrips();
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <Card>
@@ -40,38 +42,49 @@ export function UpcomingTrips() {
             </div>
           ))
         ) : !trips || trips.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-center text-muted-foreground">
-            <Plane className="h-8 w-8 opacity-40" />
-            <p className="text-sm">No upcoming trips planned</p>
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed bg-muted/20 py-8 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 ring-1 ring-border/60">
+              <Plane className="h-5 w-5 text-primary/60" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium">No upcoming trips</p>
+              <p className="text-xs text-muted-foreground">Your next adventure is waiting.</p>
+            </div>
             <Button variant="outline" size="sm" asChild>
               <Link to="/trips/new">Plan a trip</Link>
             </Button>
           </div>
         ) : (
-          trips.map((trip) => (
-            <Link
+          trips.map((trip, index) => (
+            <motion.div
               key={trip.id}
-              to={`/trips/${trip.id}`}
-              className="flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+              initial={prefersReducedMotion ? {} : { opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: prefersReducedMotion ? 0 : index * 0.06, duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
             >
-              <div className="min-w-0 space-y-1">
-                <p className="truncate text-sm font-medium leading-none">{trip.title}</p>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{trip.destination}</span>
-                </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <CalendarDays className="h-3 w-3 shrink-0" />
-                  <span>{formatDateRange(trip.start_date, trip.end_date)}</span>
-                </div>
-              </div>
-              <Badge
-                variant={trip.status === 'active' ? 'success' : 'info'}
-                className="mt-0.5 shrink-0"
+              <Link
+                to={`/trips/${trip.id}`}
+                className="flex items-start justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
               >
-                {daysUntilLabel(trip.start_date)}
-              </Badge>
-            </Link>
+                <div className="min-w-0 space-y-1">
+                  <p className="truncate text-sm font-medium leading-none">{trip.title}</p>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{trip.destination}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <CalendarDays className="h-3 w-3 shrink-0" />
+                    <span>{formatDateRange(trip.start_date, trip.end_date)}</span>
+                  </div>
+                </div>
+                <Badge
+                  variant={trip.status === 'active' ? 'success' : 'info'}
+                  className="mt-0.5 shrink-0"
+                >
+                  {daysUntilLabel(trip.start_date)}
+                </Badge>
+              </Link>
+            </motion.div>
           ))
         )}
       </CardContent>

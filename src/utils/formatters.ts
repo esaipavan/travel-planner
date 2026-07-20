@@ -5,7 +5,7 @@ export function formatCurrency(amount: number, currency = 'INR', locale = 'en-IN
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: currency === 'INR' ? 0 : 2,
   }).format(amount);
 }
 

@@ -14,6 +14,7 @@ import {
   Bell,
   BarChart2,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface MobileNavProps {
@@ -37,6 +38,18 @@ const moreItems = [
   { to: '/analytics',   icon: BarChart2,   label: 'Analytics'   },
 ];
 
+const panelVariants = {
+  hidden: { opacity: 0, y: 16 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.18, ease: [0.4, 0, 0.2, 1] as const } },
+  exit:   { opacity: 0, y: 16, transition: { duration: 0.14, ease: [0.4, 0, 1, 1] as const } },
+};
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  show:   { opacity: 1, transition: { duration: 0.15 } },
+  exit:   { opacity: 0, transition: { duration: 0.12 } },
+};
+
 export function MobileNav({ className }: MobileNavProps) {
   const [moreOpen, setMoreOpen] = useState(false);
 
@@ -48,56 +61,70 @@ export function MobileNav({ className }: MobileNavProps) {
         className,
       )}
     >
-      {/* Backdrop — rendered inside nav so it inherits z-context; sits behind nav (z-9) */}
-      {moreOpen && (
-        <div
-          aria-hidden="true"
-          style={{ zIndex: 9 }}
-          className="fixed inset-0 bg-black/40"
-          onClick={() => setMoreOpen(false)}
-        />
-      )}
+      {/* Animated backdrop */}
+      <AnimatePresence>
+        {moreOpen && (
+          <motion.div
+            key="backdrop"
+            variants={backdropVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            aria-hidden="true"
+            style={{ zIndex: 9 }}
+            className="fixed inset-0 bg-black/40"
+            onClick={() => setMoreOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* More panel — slides up from above the nav bar */}
-      {moreOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="More navigation options"
-          className="absolute bottom-full left-0 right-0 rounded-t-xl border-t bg-card p-4 shadow-xl"
-        >
-          <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
-            More
-          </p>
-          <div className="grid grid-cols-4 gap-1">
-            {moreItems.map(({ to, icon: Icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                onClick={() => setMoreOpen(false)}
-                className={({ isActive }) =>
-                  cn(
-                    'flex flex-col items-center gap-1 rounded-lg p-2 text-[11px] font-medium transition-colors',
-                    isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      className={cn('h-5 w-5', isActive && 'text-primary')}
-                      aria-hidden="true"
-                    />
-                    {label}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Animated more panel */}
+      <AnimatePresence>
+        {moreOpen && (
+          <motion.div
+            key="panel"
+            variants={panelVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            role="dialog"
+            aria-modal="true"
+            aria-label="More navigation options"
+            className="absolute bottom-full left-0 right-0 rounded-t-xl border-t bg-card p-4 shadow-xl"
+          >
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
+              More
+            </p>
+            <div className="grid grid-cols-4 gap-1">
+              {moreItems.map(({ to, icon: Icon, label }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={() => setMoreOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      'flex flex-col items-center gap-1 rounded-lg p-2 text-[11px] font-medium transition-colors min-h-[60px] justify-center',
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Icon
+                        className={cn('h-5 w-5', isActive && 'text-primary')}
+                        aria-hidden="true"
+                      />
+                      {label}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Bottom tab bar */}
       <div className="grid grid-cols-5">
