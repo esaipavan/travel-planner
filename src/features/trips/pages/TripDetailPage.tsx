@@ -81,7 +81,7 @@ function buildCards(tripId: string): SubFeatureCard[] {
     {
       label: 'AI Assistant',
       description: 'Get recommendations and answers',
-      href: '/assistant',
+      href: `/assistant?tripId=${tripId}`,
       icon: Bot,
     },
   ];

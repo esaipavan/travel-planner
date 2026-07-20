@@ -40,11 +40,13 @@ async function initializeDays(
 }
 
 export async function getItineraryData(tripId: string): Promise<ItineraryData> {
-  const { data: trip } = await supabase
+  const { data: trip, error: tripError } = await supabase
     .from('trips')
     .select('title, currency, start_date, end_date')
     .eq('id', tripId)
     .single();
+
+  if (tripError) throw new Error(tripError.message);
 
   const tripTitle    = trip?.title      ?? '';
   const tripCurrency = trip?.currency   ?? 'INR';
@@ -55,11 +57,13 @@ export async function getItineraryData(tripId: string): Promise<ItineraryData> {
     await initializeDays(tripId, startDate, endDate);
   }
 
-  const { data: dayRows } = await supabase
+  const { data: dayRows, error: daysError } = await supabase
     .from('itinerary_days')
     .select('*')
     .eq('trip_id', tripId)
     .order('day_number', { ascending: true });
+
+  if (daysError) throw new Error(daysError.message);
 
   const days = dayRows ?? [];
 
@@ -68,11 +72,13 @@ export async function getItineraryData(tripId: string): Promise<ItineraryData> {
   }
 
   const dayIds = days.map((d) => d.id);
-  const { data: itemRows } = await supabase
+  const { data: itemRows, error: itemsError } = await supabase
     .from('itinerary_items')
     .select('*')
     .in('day_id', dayIds)
     .order('order_index', { ascending: true });
+
+  if (itemsError) throw new Error(itemsError.message);
 
   const itemsByDay = new Map<string, ItineraryItemRow[]>();
   for (const item of itemRows ?? []) {
@@ -121,9 +127,11 @@ export async function deleteItem(id: string): Promise<void> {
 export async function reorderItems(
   updates: { id: string; order_index: number }[],
 ): Promise<void> {
-  await Promise.all(
+  const results = await Promise.all(
     updates.map(({ id, order_index }) =>
       supabase.from('itinerary_items').update({ order_index }).eq('id', id),
     ),
   );
+  const firstError = results.find((r) => r.error)?.error;
+  if (firstError) throw new Error(firstError.message);
 }

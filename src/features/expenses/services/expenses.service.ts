@@ -8,7 +8,11 @@ import type {
 } from '../types';
 
 export async function getExpenseData(tripId: string): Promise<ExpenseData> {
-  const [{ data: tripData }, { data: expenses }, { data: budgetRows }] = await Promise.all([
+  const [
+    { data: tripData, error: tripError },
+    { data: expenses, error: expensesError },
+    { data: budgetRows, error: budgetError },
+  ] = await Promise.all([
     supabase
       .from('trips')
       .select('title, currency, start_date, end_date')
@@ -25,6 +29,10 @@ export async function getExpenseData(tripId: string): Promise<ExpenseData> {
       .select('category, allocated_amount')
       .eq('trip_id', tripId),
   ]);
+
+  if (tripError) throw new Error(tripError.message);
+  if (expensesError) throw new Error(expensesError.message);
+  if (budgetError) throw new Error(budgetError.message);
 
   const budgetMap: Partial<Record<ExpenseCategory, number>> = {};
   for (const row of budgetRows ?? []) {
