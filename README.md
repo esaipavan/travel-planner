@@ -10,7 +10,7 @@ A production-grade, full-stack travel management platform — fast, secure, and 
 
 <br />
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-Visit_App-4F46E5?style=for-the-badge&logo=vercel&logoColor=white)](https://travel-planner-iaok8iyao-saipavans-projects-32f9b141.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🌐h_Live_Demo-Visit_App-4F46E5?style=for-the-badge&logo=vercel&logoColor=white)](https://travel-planner-saipavans-projects-32f9b141.vercel.app)
 
 <br />
 
@@ -28,7 +28,7 @@ A production-grade, full-stack travel management platform — fast, secure, and 
 
 ## 🌐 Live Demo
 
-**[👉 Open the live app](https://travel-planner-iaok8iyao-saipavans-projects-32f9b141.vercel.app)**
+**[👉 Open the live app](https://travel-planner-saipavans-projects-32f9b141.vercel.app)**
 
 Sign in with Google or an email/password account. All data is fully isolated per user via Supabase Row Level Security.
 
