@@ -55,7 +55,7 @@ export async function getUpcomingTrips(userId: string): Promise<UpcomingTrip[]> 
       'id, title, destination, start_date, end_date, status, cover_image_url, currency, total_budget',
     )
     .eq('user_id', userId)
-    .in('status', ['planning', 'active'])
+    .neq('status', 'cancelled')
     .gte('start_date', today)
     .order('start_date')
     .limit(3);

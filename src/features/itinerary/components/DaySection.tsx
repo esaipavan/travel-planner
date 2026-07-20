@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { formatDate } from '@/utils/formatters';
+import { formatDate, formatCurrency } from '@/utils/formatters';
 import { useReorderItems } from '../hooks/useItinerary';
 import { ItineraryItemCard } from './ItineraryItemCard';
 import { ItemDialog } from './ItemDialog';
@@ -129,7 +129,7 @@ export function DaySection({ day, tripId, currency }: Props) {
         <div className="flex items-center gap-3">
           {totalCost > 0 && (
             <span className="text-xs text-muted-foreground tabular-nums">
-              Est. {currency} {totalCost.toLocaleString()}
+              Est. {formatCurrency(totalCost, currency)}
             </span>
           )}
           <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>

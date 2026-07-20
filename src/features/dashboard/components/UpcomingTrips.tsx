@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CalendarDays, MapPin, ArrowRight, Plane } from 'lucide-react';
 import { differenceInDays, parseISO, isToday, isTomorrow } from 'date-fns';
+import { getTripStatus } from '@/utils/tripStatus';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,10 +11,11 @@ import { formatDateRange } from '@/utils/formatters';
 import { useUpcomingTrips } from '../hooks/useDashboard';
 
 function daysUntilLabel(dateStr: string): string {
-  const d = parseISO(dateStr);
+  const d = parseISO(`${dateStr}T00:00:00`);
   if (isToday(d)) return 'Today';
   if (isTomorrow(d)) return 'Tomorrow';
   const days = differenceInDays(d, new Date());
+  if (days < 0) return 'In progress';
   return `In ${days} day${days === 1 ? '' : 's'}`;
 }
 
@@ -78,7 +80,7 @@ export function UpcomingTrips() {
                   </div>
                 </div>
                 <Badge
-                  variant={trip.status === 'active' ? 'success' : 'info'}
+                  variant={getTripStatus(trip) === 'active' ? 'success' : 'info'}
                   className="mt-0.5 shrink-0"
                 >
                   {daysUntilLabel(trip.start_date)}

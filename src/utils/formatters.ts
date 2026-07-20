@@ -9,14 +9,23 @@ export function formatCurrency(amount: number, currency = 'INR', locale = 'en-IN
   }).format(amount);
 }
 
+// Parse a date value without UTC-offset shifting.
+// Date-only strings (YYYY-MM-DD) from the DB are stored in local time; appending
+// T00:00:00 forces date-fns / JS to parse them as local midnight rather than UTC
+// midnight (which would display the wrong calendar day in negative-offset timezones).
+function parseLocalDate(date: string | Date): Date {
+  if (typeof date !== 'string') return date;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) return parseISO(`${date}T00:00:00`);
+  return parseISO(date);
+}
+
 export function formatDate(date: string | Date, fmt = 'MMM d, yyyy'): string {
-  const d = typeof date === 'string' ? parseISO(date) : date;
-  return format(d, fmt);
+  return format(parseLocalDate(date), fmt);
 }
 
 export function formatDateRange(startDate: string, endDate: string): string {
-  const start = parseISO(startDate);
-  const end = parseISO(endDate);
+  const start = parseLocalDate(startDate);
+  const end   = parseLocalDate(endDate);
   if (format(start, 'MMM yyyy') === format(end, 'MMM yyyy')) {
     return `${format(start, 'MMM d')} – ${format(end, 'd, yyyy')}`;
   }
