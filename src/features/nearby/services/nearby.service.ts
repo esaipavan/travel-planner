@@ -5,7 +5,7 @@ const GEOAPIFY    = 'https://api.geoapify.com/v2/places';
 const RADIUS_M    = 5_000;
 const MAX_RESULTS = 200;
 
-// All Geoapify categories covered in a single request
+// Valid Geoapify category strings — verified against https://apidocs.geoapify.com/docs/places/#categories
 const ALL_CATEGORIES = [
   'catering.restaurant',
   'catering.fast_food',
@@ -16,34 +16,33 @@ const ALL_CATEGORIES = [
   'accommodation.hostel',
   'accommodation.motel',
   'accommodation.guest_house',
-  'accommodation.bed_and_breakfast',
   'healthcare.hospital',
-  'healthcare.clinic',
+  'healthcare.clinic_or_praxis',
+  'healthcare.pharmacy',
   'service.financial.atm',
   'service.financial.bank',
-  'service.vehicle.fuel_station',
-  'amenity.fuel',
+  'service.vehicle.fuel',
   'tourism.attraction',
   'tourism.sights',
   'entertainment.museum',
   'entertainment.zoo',
   'entertainment.theme_park',
-  'healthcare.pharmacy',
+  'leisure.park',
 ].join(',');
 
 // Prefix-ordered: more-specific prefixes before parents
 const CATEGORY_MAP: Array<{ prefix: string; category: PlaceCategory }> = [
-  { prefix: 'healthcare.hospital',   category: 'hospitals'   },
-  { prefix: 'healthcare.clinic',     category: 'hospitals'   },
-  { prefix: 'healthcare.pharmacy',   category: 'pharmacies'  },
-  { prefix: 'service.financial.atm', category: 'atms'        },
-  { prefix: 'service.financial.bank',category: 'atms'        },
-  { prefix: 'service.vehicle',       category: 'fuel'        },
-  { prefix: 'amenity.fuel',          category: 'fuel'        },
-  { prefix: 'catering',              category: 'restaurants' },
-  { prefix: 'accommodation',         category: 'hotels'      },
-  { prefix: 'tourism',               category: 'attractions' },
-  { prefix: 'entertainment',         category: 'attractions' },
+  { prefix: 'healthcare.hospital',        category: 'hospitals'   },
+  { prefix: 'healthcare.clinic_or_praxis',category: 'hospitals'   },
+  { prefix: 'healthcare.pharmacy',        category: 'pharmacies'  },
+  { prefix: 'service.financial.atm',      category: 'atms'        },
+  { prefix: 'service.financial.bank',     category: 'atms'        },
+  { prefix: 'service.vehicle.fuel',       category: 'fuel'        },
+  { prefix: 'catering',                   category: 'restaurants' },
+  { prefix: 'accommodation',              category: 'hotels'      },
+  { prefix: 'tourism',                    category: 'attractions' },
+  { prefix: 'entertainment',              category: 'attractions' },
+  { prefix: 'leisure.park',              category: 'attractions' },
 ];
 
 function resolveCategory(categories: string[]): PlaceCategory | null {
@@ -53,6 +52,14 @@ function resolveCategory(categories: string[]): PlaceCategory | null {
     }
   }
   return null;
+}
+
+// Dev assertion: every requested category must map to a PlaceCategory
+if (import.meta.env.DEV) {
+  const unmapped = ALL_CATEGORIES.split(',').filter(c => resolveCategory([c]) === null);
+  if (unmapped.length > 0) {
+    console.warn('[nearby] Categories requested but not in CATEGORY_MAP (results will be silently dropped):', unmapped);
+  }
 }
 
 async function geocode(query: string): Promise<{ lat: number; lon: number; displayName: string }> {
@@ -107,6 +114,10 @@ async function fetchGeoapifyPlaces(lat: number, lon: number): Promise<GeoapifyRe
     limit:      String(MAX_RESULTS),
     apiKey,
   });
+
+  if (import.meta.env.DEV) {
+    console.debug('[nearby] Geoapify request:', `${GEOAPIFY}?${params.toString()}`);
+  }
 
   const res = await fetch(`${GEOAPIFY}?${params}`);
   if (!res.ok) {
