@@ -9,6 +9,7 @@ import { getAllExpenses, getAllJournalEntries } from '../services/analytics.serv
 import { getEffectiveStatus } from '@/features/reminders/types';
 import { getExpiryStatus } from '@/features/documents/types';
 import { EXPENSE_CATEGORIES } from '@/utils/constants';
+import { getTripStatus } from '@/utils/tripStatus';
 import type { AnalyticsFilters } from '../types';
 
 const ANA_KEY = (uid: string) => ['analytics', uid] as const;
@@ -113,21 +114,17 @@ export function useAnalyticsData(filters: AnalyticsFilters) {
 
   // ── KPI cards ────────────────────────────────────────────────────────────
   const kpis = useMemo(() => {
-    const today         = new Date().toISOString().split('T')[0];
-    const totalTrips    = filteredTrips.length;
-    const upcomingTrips = filteredTrips.filter((t) => t.start_date > today).length;
-    const completedTrips = filteredTrips.filter((t) => t.status === 'completed').length;
+    const totalTrips     = filteredTrips.length;
+    const upcomingTrips  = filteredTrips.filter((t) => getTripStatus(t) === 'upcoming').length;
+    const completedTrips = filteredTrips.filter((t) => getTripStatus(t) === 'completed').length;
     const countriesVisited = new Set(
       filteredTrips.map((t) => t.country_code ?? t.destination),
     ).size;
     const totalBudget    = filteredTrips.reduce((s, t) => s + (t.total_budget ?? 0), 0);
     const totalExpenses  = Array.from(expensesByTripId.values()).reduce((s, v) => s + v, 0);
     const budgetRemaining = totalBudget - totalExpenses;
-    const avgTripCost = completedTrips > 0
-      ? filteredTrips
-          .filter((t) => t.status === 'completed')
-          .reduce((s, t) => s + (expensesByTripId.get(t.id) ?? 0), 0) / completedTrips
-      : 0;
+    // Avg Trip Cost = Total Budget ÷ Trip Count (shows '—' in KPICards when 0).
+    const avgTripCost = totalTrips > 0 && totalBudget > 0 ? totalBudget / totalTrips : 0;
 
     return {
       totalTrips, upcomingTrips, completedTrips, countriesVisited,

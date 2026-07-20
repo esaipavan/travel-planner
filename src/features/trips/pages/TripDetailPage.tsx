@@ -190,7 +190,7 @@ export default function TripDetailPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           )}
           <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-            <TripStatusBadge status={trip.status} />
+            <TripStatusBadge trip={trip} />
           </div>
         </div>
         <CardContent className="p-4 sm:p-6">

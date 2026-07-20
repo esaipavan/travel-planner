@@ -12,7 +12,12 @@ function getDaysBetween(startDate: string, endDate: string): string[] {
   const curr = new Date(startDate + 'T00:00:00');
   const end  = new Date(endDate  + 'T00:00:00');
   while (curr <= end) {
-    days.push(curr.toISOString().split('T')[0]);
+    // Use local date components, not toISOString() (UTC), to avoid a one-day
+    // shift for timezones ahead of UTC (e.g. UTC+5:30).
+    const y = curr.getFullYear();
+    const m = String(curr.getMonth() + 1).padStart(2, '0');
+    const d = String(curr.getDate()).padStart(2, '0');
+    days.push(`${y}-${m}-${d}`);
     curr.setDate(curr.getDate() + 1);
   }
   return days;

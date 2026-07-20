@@ -35,7 +35,7 @@ export function TripCard({ trip }: TripCardProps) {
           }
         >
           <div className="absolute right-2 top-2 flex items-center gap-1.5">
-            <TripStatusBadge status={trip.status} />
+            <TripStatusBadge trip={trip} />
             <Button
               size="icon"
               variant="ghost"
