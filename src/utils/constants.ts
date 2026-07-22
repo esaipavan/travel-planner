@@ -1,6 +1,6 @@
 import type { ExpenseCategory, ItineraryCategory, DocumentType, PaymentMethod } from '@/types';
 
-export const APP_NAME = import.meta.env.VITE_APP_NAME ?? 'TravelPlanner';
+export const APP_NAME = import.meta.env.VITE_APP_NAME ?? 'TravelMate';
 
 export const ROUTES = {
   HOME: '/',

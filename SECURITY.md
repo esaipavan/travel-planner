@@ -15,7 +15,7 @@ Only the latest commit on `main` receives security fixes.
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-If you discover a security issue in TravelPlanner, report it privately by emailing:
+If you discover a security issue in TravelMate, report it privately by emailing:
 
 **saipavanetikala5@gmail.com**
 

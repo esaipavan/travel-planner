@@ -23,7 +23,7 @@ export function PWAUpdatePrompt() {
   useEffect(() => {
     if (needRefresh) {
       toast('Update available', {
-        description: 'A new version of TravelPlanner is ready.',
+        description: 'A new version of TravelMate is ready.',
         action: {
           label: 'Refresh',
           onClick: () => void updateServiceWorker(true),

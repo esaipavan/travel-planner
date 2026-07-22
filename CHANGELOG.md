@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to TravelPlanner are documented here.
+All notable changes to TravelMate are documented here.
 
 ---
 

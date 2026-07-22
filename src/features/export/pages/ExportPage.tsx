@@ -96,7 +96,7 @@ function exportToExcel(
 
   // Sheet 1: Overview
   const overviewWs = XLSX.utils.aoa_to_sheet([
-    ['TravelPlanner — Trip Export'],
+    ['TravelMate — Trip Export'],
     [],
     ['Trip',         trip.title],
     ['Destination',  trip.destination],
@@ -217,7 +217,7 @@ function openPrintView(
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>${trip.title} — TravelPlanner Export</title>
+  <title>${trip.title} — TravelMate Export</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; font-size: 13px; color: #111; padding: 32px; line-height: 1.5; max-width: 960px; margin: 0 auto; }
@@ -332,7 +332,7 @@ function openPrintView(
       : ''
   }
 
-  <div class="footer">Exported from TravelPlanner &nbsp;·&nbsp; ${formatDate(new Date().toISOString().slice(0, 10))}</div>
+  <div class="footer">Exported from TravelMate &nbsp;·&nbsp; ${formatDate(new Date().toISOString().slice(0, 10))}</div>
   <script>window.addEventListener('load', () => setTimeout(() => window.print(), 300));</script>
 </body>
 </html>`;

@@ -1,4 +1,4 @@
-# Contributing to TravelPlanner
+# Contributing to TravelMate
 
 Thank you for your interest in contributing! This document explains how to get set up locally and what to keep in mind before opening a pull request.
 

@@ -4,58 +4,59 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 224 71% 4%;
+    /* Travel/Tourism palette — sky blue + adventure orange (Soft UI Evolution) */
+    --background: 204 100% 97%;
+    --foreground: 202 80% 24%;
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 202 80% 24%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
-    --primary: 221 83% 53%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 9% 46%;
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 220 14% 96%;
-    --accent-foreground: 224 71% 4%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
-    --radius: 0.625rem;
-    --chart-1: 221 83% 53%;
-    --chart-2: 160 60% 42%;
-    --chart-3: 35 92% 56%;
-    --chart-4: 280 67% 60%;
-    --chart-5: 349 89% 60%;
+    --popover-foreground: 202 80% 24%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 204 95% 93%;
+    --secondary-foreground: 202 80% 24%;
+    --muted: 203 53% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 21 90% 48%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 200 95% 86%;
+    --input: 200 95% 86%;
+    --ring: 199 89% 48%;
+    --radius: 0.75rem;
+    --chart-1: 199 89% 48%;
+    --chart-2: 174 71% 30%;
+    --chart-3: 21 90% 48%;
+    --chart-4: 262 84% 58%;
+    --chart-5: 0 72% 51%;
   }
 
   .dark {
-    --background: 224 20% 7%;
-    --foreground: 213 31% 91%;
-    --card: 224 20% 10%;
-    --card-foreground: 213 31% 91%;
-    --popover: 224 20% 10%;
-    --popover-foreground: 213 31% 91%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 222 18% 16%;
-    --secondary-foreground: 213 31% 91%;
-    --muted: 222 18% 16%;
-    --muted-foreground: 215 16% 57%;
-    --accent: 222 18% 16%;
-    --accent-foreground: 213 31% 91%;
+    --background: 210 57% 8%;
+    --foreground: 204 95% 93%;
+    --card: 207 55% 11%;
+    --card-foreground: 204 95% 93%;
+    --popover: 207 55% 11%;
+    --popover-foreground: 204 95% 93%;
+    --primary: 199 93% 60%;
+    --primary-foreground: 201 82% 12%;
+    --secondary: 205 50% 14%;
+    --secondary-foreground: 200 95% 86%;
+    --muted: 205 50% 14%;
+    --muted-foreground: 203 20% 55%;
+    --accent: 21 90% 48%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 222 18% 18%;
-    --input: 222 18% 18%;
-    --ring: 217 91% 60%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 35 92% 56%;
-    --chart-4: 280 67% 60%;
-    --chart-5: 349 89% 60%;
+    --destructive-foreground: 0 93% 94%;
+    --border: 205 40% 18%;
+    --input: 205 40% 18%;
+    --ring: 199 93% 60%;
+    --chart-1: 199 93% 60%;
+    --chart-2: 174 71% 45%;
+    --chart-3: 21 90% 55%;
+    --chart-4: 262 84% 65%;
+    --chart-5: 0 72% 55%;
   }
 }
 
@@ -66,6 +67,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Plus Jakarta Sans', sans-serif;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;

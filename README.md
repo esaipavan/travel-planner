@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="public/icon-512.svg" alt="TravelPlanner logo" width="110" height="110" />
+<img src="public/icon-512.svg" alt="TravelMate logo" width="110" height="110" />
 
-# ✈️ TravelPlanner
+# ✈️ TravelMate
 
 ### Plan trips · Track expenses · Manage documents · Get AI-powered insights
 
@@ -113,7 +113,7 @@ Create `.env.local` in the project root:
 ```
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key-here
-VITE_APP_NAME=TravelPlanner
+VITE_APP_NAME=TravelMate
 VITE_AI_PROVIDER=groq
 ```
 

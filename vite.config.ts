@@ -11,8 +11,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
 
       manifest: {
-        name:             'TravelPlanner',
-        short_name:       'TravelPlan',
+        name:             'TravelMate',
+        short_name:       'TravelMate',
         description:      'Plan trips, track expenses, and explore the world — all in one place.',
         theme_color:      '#2563eb',
         background_color: '#ffffff',

@@ -25,8 +25,8 @@ export class OpenRouterProvider implements IAIProvider {
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://travelplanner.app',
-        'X-Title': 'TravelPlanner AI',
+        'HTTP-Referer': 'https://travelmate.app',
+        'X-Title': 'TravelMate AI',
       },
       body: JSON.stringify({
         model: this.model,

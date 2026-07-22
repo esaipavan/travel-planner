@@ -65,7 +65,7 @@ if (import.meta.env.DEV) {
 async function geocode(query: string): Promise<{ lat: number; lon: number; displayName: string }> {
   const params = new URLSearchParams({ q: query, format: 'json', limit: '1' });
   const res = await fetch(`${NOMINATIM}/search?${params}`, {
-    headers: { 'Accept-Language': 'en', 'User-Agent': 'TravelPlanner/1.0' },
+    headers: { 'Accept-Language': 'en', 'User-Agent': 'TravelMate/1.0' },
   });
   if (!res.ok) throw new Error('Geocoding request failed');
   const results = (await res.json()) as Array<{
